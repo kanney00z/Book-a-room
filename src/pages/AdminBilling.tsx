@@ -1,0 +1,316 @@
+import { useState } from 'react';
+import { useData } from '../lib/DataContext';
+import { Room } from '../types';
+import { FileText, CheckCircle, Receipt, Save, Printer } from 'lucide-react';
+import { cn, getRoomRent } from '../lib/utils';
+import * as motion from 'motion/react-client';
+
+export default function AdminBilling() {
+  const { rooms, updateRoom } = useData();
+  const occupiedRooms = rooms.filter(r => r.status === 'occupied');
+
+  const [editingRoom, setEditingRoom] = useState<string | null>(null);
+  const [editValues, setEditValues] = useState<{
+    currentWaterMeter?: number;
+    currentElectricMeter?: number;
+    customRent?: number;
+  }>({});
+
+  const WATER_RATE = 18; // 18 baht per unit
+  const ELECTRIC_RATE = 8; // 8 baht per unit
+
+  const calculateTotal = (room: Room) => {
+    let total = getRoomRent(room);
+
+    if (room.currentWaterMeter && room.lastWaterMeter) {
+      total += (room.currentWaterMeter - room.lastWaterMeter) * WATER_RATE;
+    }
+    if (room.currentElectricMeter && room.lastElectricMeter) {
+      total += (room.currentElectricMeter - room.lastElectricMeter) * ELECTRIC_RATE;
+    }
+    return total;
+  };
+
+  const handleEdit = (room: Room) => {
+    setEditingRoom(room.id);
+    setEditValues({
+      currentWaterMeter: room.currentWaterMeter || 0,
+      currentElectricMeter: room.currentElectricMeter || 0,
+      customRent: getRoomRent(room)
+    });
+  };
+
+  const handleSave = async (roomId: string) => {
+    if (!editingRoom) return;
+    
+    // Auto-calculate total and set to unpaid if meters changed
+    await updateRoom(roomId, {
+      ...editValues,
+      isPaid: false
+    });
+    setEditingRoom(null);
+    setEditValues({});
+  };
+
+  const handlePrint = (room: Room) => {
+    const totalRent = getRoomRent(room);
+    const waterTotal = ((room.currentWaterMeter || 0) - (room.lastWaterMeter || 0)) * WATER_RATE;
+    const electricTotal = ((room.currentElectricMeter || 0) - (room.lastElectricMeter || 0)) * ELECTRIC_RATE;
+    const grandTotal = totalRent + waterTotal + electricTotal;
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return alert('กรุณาอนุญาต Pop-up เพื่อพิมพ์บิล');
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>ใบแจ้งหนี้ ห้อง ${room.number}</title>
+          <style>
+            body { font-family: 'Sarabun', sans-serif; padding: 40px; color: #333; }
+            .header { text-align: center; margin-bottom: 40px; }
+            .header h1 { margin: 0; color: #1e40af; font-size: 28px; }
+            .header p { margin: 5px 0; color: #666; }
+            .info { display: flex; justify-content: space-between; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #eee; }
+            table { w-full; width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+            th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+            th { font-weight: bold; color: #666; }
+            .text-right { text-align: right; }
+            .total-row { font-size: 20px; font-weight: bold; background: #f8fafc; }
+            .footer { margin-top: 50px; text-align: center; color: #666; font-size: 14px; }
+            @media print {
+              body { padding: 0; }
+              button { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>MODERN STAY</h1>
+            <p>ใบแจ้งหนี้ประจำเดือน (Invoice)</p>
+          </div>
+          <div class="info">
+            <div>
+              <strong>ผู้เช่า:</strong> ${room.tenantName}<br>
+              <strong>ห้องพัก:</strong> ${room.number} (${room.type})
+            </div>
+            <div class="text-right">
+              <strong>วันที่:</strong> ${new Date().toLocaleDateString()}<br>
+              <strong>สถานะ:</strong> ${room.isPaid ? 'ชำระแล้ว' : 'รอชำระเงิน'}
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>รายการ</th>
+                <th class="text-right">จำนวนหน่วย</th>
+                <th class="text-right">ราคา/หน่วย</th>
+                <th class="text-right">จำนวนเงิน (บาท)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ค่าเช่าห้องพัก</td>
+                <td class="text-right">1</td>
+                <td class="text-right">${totalRent.toLocaleString()}</td>
+                <td class="text-right">${totalRent.toLocaleString()}</td>
+              </tr>
+              <tr>
+                <td>ค่าน้ำประปา (มิเตอร์ ${room.lastWaterMeter || 0} - ${room.currentWaterMeter || 0})</td>
+                <td class="text-right">${(room.currentWaterMeter || 0) - (room.lastWaterMeter || 0)}</td>
+                <td class="text-right">${WATER_RATE}</td>
+                <td class="text-right">${waterTotal.toLocaleString()}</td>
+              </tr>
+              <tr>
+                <td>ค่าไฟฟ้า (มิเตอร์ ${room.lastElectricMeter || 0} - ${room.currentElectricMeter || 0})</td>
+                <td class="text-right">${(room.currentElectricMeter || 0) - (room.lastElectricMeter || 0)}</td>
+                <td class="text-right">${ELECTRIC_RATE}</td>
+                <td class="text-right">${electricTotal.toLocaleString()}</td>
+              </tr>
+              <tr class="total-row">
+                <td colspan="3" class="text-right" style="padding-top: 20px;">ยอดรวมทั้งสิ้น</td>
+                <td class="text-right" style="padding-top: 20px; color: #1e40af;">${grandTotal.toLocaleString()}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="footer">
+            <p>กรุณาชำระเงินภายในวันที่ 5 ของเดือน</p>
+            <p>ขอขอบคุณที่ใช้บริการ Modern Stay</p>
+          </div>
+          <script>
+            window.onload = () => { window.print(); window.close(); }
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  const togglePaid = (roomId: string, currentStatus: boolean) => {
+    updateRoom(roomId, { isPaid: !currentStatus });
+  };
+
+  return (
+    <div className="space-y-6 h-full flex flex-col">
+      <div className="flex bg-white rounded-[1.5rem] border border-slate-100 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] items-center gap-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-indigo-400/10 to-transparent rounded-bl-full -z-10"></div>
+        <div className="w-16 h-16 bg-gradient-to-br from-indigo-50 to-violet-100 text-indigo-700 rounded-[1.25rem] flex items-center justify-center shrink-0 shadow-sm border border-indigo-200/50">
+          <Receipt className="w-8 h-8" />
+        </div>
+        <div>
+          <h2 className="text-3xl font-display font-bold text-slate-900 tracking-tight">ระบบจัดการค่าเช่าและบิล</h2>
+          <p className="text-slate-500 mt-2 font-medium">บันทึกมิเตอร์น้ำ-ไฟ และสรุปยอดค่าใช้จ่ายประจำเดือนสำหรับผู้เช่าทั้งหมด</p>
+        </div>
+        <div className="ml-auto">
+          <button className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white font-semibold rounded-xl hover:bg-indigo-600 transition-all duration-300 shadow-md hover:shadow-indigo-600/20">
+            <FileText className="w-4 h-4" /> พิมพ์สรุปยอดทั้งหมด
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-[1.5rem] border border-slate-100 p-2 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex-1 flex flex-col overflow-hidden">
+        <div className="overflow-x-auto flex-1 custom-scrollbar pb-4 pr-2">
+          <table className="w-full text-left border-collapse min-w-[800px]">
+            <thead className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b-2 border-slate-100">
+              <tr>
+                <th className="pb-4 px-4 text-slate-500 w-24">ห้องพัก</th>
+                <th className="pb-4 px-4 text-slate-500 w-48">ผู้เช่า</th>
+                <th className="pb-4 px-4 text-slate-500">ค่าเช่า(฿)</th>
+                <th className="pb-4 px-4 text-slate-500 text-center">มิเตอร์น้ำ <span className="text-[10px] font-normal lowercase tracking-normal">(ด.ก่อน/ปัจจุบัน)</span></th>
+                <th className="pb-4 px-4 text-slate-500 text-center">มิเตอร์ไฟ <span className="text-[10px] font-normal lowercase tracking-normal">(ด.ก่อน/ปัจจุบัน)</span></th>
+                <th className="pb-4 px-4 text-slate-500 text-right">ยอดรวม(฿)</th>
+                <th className="pb-4 px-4 text-center text-slate-500">สถานะ</th>
+                <th className="pb-4 px-4 text-right text-slate-500">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody className="text-sm text-slate-700 divide-y divide-slate-50">
+              {occupiedRooms.map(room => (
+                <tr key={room.id} className="hover:bg-slate-50/80 transition-colors group">
+                  <td className="py-5 px-4">
+                    <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-700 flex flex-col items-center justify-center font-display shadow-inner border border-slate-200/50">
+                      <span className="text-base font-bold leading-none">{room.number}</span>
+                    </div>
+                  </td>
+                  <td className="py-5 px-4 font-semibold text-slate-800">{room.tenantName}</td>
+                  <td className="py-5 px-4">
+                    {editingRoom === room.id ? (
+                      <input 
+                        type="number" 
+                        value={editValues.customRent || ''} 
+                        onChange={(e) => setEditValues({...editValues, customRent: Number(e.target.value)})}
+                        className="w-24 px-3 py-1.5 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold"
+                      />
+                    ) : (
+                      <div className="flex flex-col">
+                        <span className="font-bold text-slate-700">฿{getRoomRent(room).toLocaleString()}</span>
+                        <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">{room.activeBookingType === 'daily' ? 'รายวัน' : 'รายเดือน'}</span>
+                      </div>
+                    )}
+                  </td>
+                  
+                  {/* Water */}
+                  <td className="py-5 px-4">
+                    {editingRoom === room.id ? (
+                      <div className="flex items-center justify-center gap-2 bg-blue-50/50 p-2 rounded-xl border border-blue-100">
+                        <span className="text-slate-400 w-8 text-right font-medium">{room.lastWaterMeter || 0}</span>
+                        <span className="text-slate-300">/</span>
+                        <input 
+                          type="number" 
+                          value={editValues.currentWaterMeter || ''} 
+                          onChange={(e) => setEditValues({...editValues, currentWaterMeter: Number(e.target.value)})}
+                          className="w-20 px-2 py-1.5 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white font-semibold text-center"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center gap-2 bg-slate-50 p-2 rounded-xl">
+                        <span className="text-slate-400 font-medium">{room.lastWaterMeter || 0}</span> 
+                        <span className="text-slate-300">/</span> 
+                        <span className="font-bold text-blue-600">{room.currentWaterMeter || 0}</span>
+                      </div>
+                    )}
+                  </td>
+
+                  {/* Electric */}
+                  <td className="py-5 px-4">
+                    {editingRoom === room.id ? (
+                      <div className="flex items-center justify-center gap-2 bg-amber-50/50 p-2 rounded-xl border border-amber-100">
+                        <span className="text-slate-400 w-8 text-right font-medium">{room.lastElectricMeter || 0}</span>
+                        <span className="text-slate-300">/</span>
+                        <input 
+                          type="number" 
+                          value={editValues.currentElectricMeter || ''} 
+                          onChange={(e) => setEditValues({...editValues, currentElectricMeter: Number(e.target.value)})}
+                          className="w-20 px-2 py-1.5 border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 bg-white font-semibold text-center"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center gap-2 bg-slate-50 p-2 rounded-xl">
+                        <span className="text-slate-400 font-medium">{room.lastElectricMeter || 0}</span> 
+                        <span className="text-slate-300">/</span> 
+                        <span className="font-bold text-amber-600">{room.currentElectricMeter || 0}</span>
+                      </div>
+                    )}
+                  </td>
+
+                  <td className="py-5 px-4 text-right">
+                    <span className="text-xl font-display font-bold text-slate-900">
+                      ฿{calculateTotal(room).toLocaleString()}
+                    </span>
+                  </td>
+
+                  <td className="py-5 px-4 text-center">
+                    <button 
+                      onClick={() => togglePaid(room.id, !!room.isPaid)}
+                      className={cn(
+                        "px-4 py-1.5 text-xs font-bold rounded-full transition-all shadow-sm",
+                        room.isPaid 
+                          ? "bg-emerald-100/80 text-emerald-700 hover:bg-emerald-200 border border-emerald-200" 
+                          : "bg-rose-100 text-rose-700 hover:bg-rose-200 border border-rose-200"
+                      )}
+                    >
+                      {room.isPaid ? 'ชำระแล้ว' : 'ค้างชำระ'}
+                    </button>
+                  </td>
+
+                  <td className="py-5 px-4 text-right">
+                    {editingRoom === room.id ? (
+                      <button 
+                        onClick={() => handleSave(room.id)}
+                        className="px-5 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition shadow-md shadow-indigo-600/20 text-sm font-semibold flex items-center justify-center gap-2 ml-auto"
+                      >
+                        <Save className="w-4 h-4" /> บันทึก
+                      </button>
+                    ) : (
+                      <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => handlePrint(room)}
+                          className="w-10 h-10 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-all"
+                          title="พิมพ์ใบเสร็จ"
+                        >
+                          <Printer className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleEdit(room)}
+                          className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition text-sm font-semibold shadow-sm"
+                        >
+                          จดมิเตอร์
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+
+              {occupiedRooms.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center text-slate-500">
+                    <p>ยังไม่มีผู้เช่าห้องพัก</p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
