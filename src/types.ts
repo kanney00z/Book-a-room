@@ -37,6 +37,7 @@ export interface BookingRequest {
   bookingType: 'daily' | 'monthly';
   requestedMoveInDate: string;
   requestedMoveOutDate?: string;
+  guestCount?: number;
   status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
 }

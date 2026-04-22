@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useData } from '../lib/DataContext';
 import { Room } from '../types';
-import { Search, Home, Building, ShieldCheck, Phone, ChevronRight, X } from 'lucide-react';
+import { Search, Home, Building, ShieldCheck, Phone, ChevronRight, X, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn, getRoomRent } from '../lib/utils';
 import * as motion from 'motion/react-client';
@@ -16,7 +16,8 @@ export default function PublicBooking() {
     applicantPhone: '',
     bookingType: 'monthly' as 'monthly' | 'daily',
     requestedMoveInDate: '',
-    requestedMoveOutDate: ''
+    requestedMoveOutDate: '',
+    guestCount: 1
   });
   const [bookingStep, setBookingStep] = useState<1 | 2 | 3>(1);
 
@@ -52,11 +53,12 @@ export default function PublicBooking() {
         bookingType: formData.bookingType,
         requestedMoveInDate: formData.requestedMoveInDate,
         requestedMoveOutDate: formData.bookingType === 'daily' ? formData.requestedMoveOutDate : undefined,
+        guestCount: formData.guestCount,
         status: 'pending'
       });
       setShowModal(null);
       setBookingStep(1);
-      setFormData({ applicantName: '', applicantPhone: '', bookingType: 'monthly', requestedMoveInDate: '', requestedMoveOutDate: '' });
+      setFormData({ applicantName: '', applicantPhone: '', bookingType: 'monthly', requestedMoveInDate: '', requestedMoveOutDate: '', guestCount: 1 });
       alert('ส่งคำขอจองห้องสำเร็จ! เจ้าหน้าที่จะติดต่อกลับ');
     }
   };
@@ -368,6 +370,23 @@ export default function PublicBooking() {
                       placeholder="081-234-5678"
                     />
                   </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">จำนวนผู้เข้าพัก</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                        <Users className="w-5 h-5" />
+                      </div>
+                      <input 
+                        required
+                        type="number" 
+                        min="1"
+                        max="4"
+                        value={formData.guestCount}
+                        onChange={e => setFormData({...formData, guestCount: parseInt(e.target.value) || 1})}
+                        className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium text-slate-700"
+                      />
+                    </div>
+                  </div>
                 </motion.div>
               )}
 
@@ -387,9 +406,13 @@ export default function PublicBooking() {
                       <span className="text-slate-500">ชื่อผู้ติดต่อ:</span>
                       <span className="font-bold text-slate-800">{formData.applicantName}</span>
                     </div>
-                    <div className="flex justify-between pb-2">
+                    <div className="flex justify-between border-b border-slate-200 pb-2">
                       <span className="text-slate-500">เบอร์โทร:</span>
                       <span className="font-bold text-slate-800">{formData.applicantPhone}</span>
+                    </div>
+                    <div className="flex justify-between pb-2">
+                      <span className="text-slate-500">จำนวนผู้เข้าพัก:</span>
+                      <span className="font-bold text-slate-800">{formData.guestCount} คน</span>
                     </div>
                   </div>
                   <div className="mt-4 p-3 bg-indigo-50 rounded-xl text-indigo-700 text-xs font-semibold text-center border border-indigo-100">
