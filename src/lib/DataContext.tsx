@@ -144,7 +144,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         phone: booking.applicantPhone,
         bookingType: booking.bookingType === 'monthly' ? 'รายเดือน' : 'รายวัน',
         amount: booking.bookingType === 'monthly' ? room?.monthlyRent : room?.dailyRent,
-        moveInDate: booking.requestedMoveInDate
+        moveInDate: booking.requestedMoveInDate,
+        moveOutDate: booking.requestedMoveOutDate
       });
     }
     else if (error) alert('เกิดข้อผิดพลาดในการจองห้อง');
