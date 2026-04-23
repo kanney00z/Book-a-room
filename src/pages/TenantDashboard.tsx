@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../lib/DataContext';
-import { LogOut, Receipt, QrCode, Wrench, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { LogOut, Receipt, QrCode, Wrench, AlertCircle, CheckCircle, Clock, X, Copy } from 'lucide-react';
 import * as motion from 'motion/react-client';
 import { cn, getRoomRent } from '../lib/utils';
 
 export default function TenantDashboard() {
   const navigate = useNavigate();
-  const { rooms, maintenanceRequests, addMaintenanceRequest } = useData();
+  const { rooms, maintenanceRequests, addMaintenanceRequest, updateRoom } = useData();
   const [roomId, setRoomId] = useState(localStorage.getItem('tenantRoomId'));
   
   const [isReporting, setIsReporting] = useState(false);
   const [reportTitle, setReportTitle] = useState('');
   const [reportDesc, setReportDesc] = useState('');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   useEffect(() => {
     if (!roomId) {
@@ -117,7 +118,10 @@ export default function TenantDashboard() {
               </div>
               
               {!room.isPaid && (
-                <button className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 text-white rounded-xl font-bold hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/20 transition-all">
+                <button 
+                  onClick={() => setShowPaymentModal(true)}
+                  className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 text-white rounded-xl font-bold hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/20 transition-all"
+                >
                   <QrCode className="w-5 h-5" /> สแกนจ่าย PromptPay
                 </button>
               )}
@@ -218,6 +222,56 @@ export default function TenantDashboard() {
           </div>
         </section>
       </div>
+
+      {/* PromptPay Mock Modal */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="bg-white rounded-[2rem] border border-slate-200 p-8 max-w-sm w-full shadow-2xl relative overflow-hidden text-center"
+          >
+            <button 
+              onClick={() => setShowPaymentModal(false)} 
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition p-2 bg-slate-50 hover:bg-slate-100 rounded-full"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            <div className="flex justify-center mb-4 mt-2">
+              <div className="bg-[#113566] text-white px-6 py-1.5 rounded-full font-bold text-lg tracking-wide shadow-md">
+                PromptPay
+              </div>
+            </div>
+            
+            <p className="text-sm font-semibold text-slate-500 mb-6">สแกน QR Code เพื่อชำระเงิน</p>
+
+            {/* Mock QR Code Image Placeholder */}
+            <div className="w-48 h-48 mx-auto bg-white border-8 border-slate-100 rounded-2xl shadow-sm flex items-center justify-center p-2 mb-6">
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=promptpay-dummy-${room.id}`} 
+                alt="PromptPay QR Code"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            
+            <div className="bg-slate-50 rounded-xl p-4 mb-6 text-left border border-slate-100">
+              <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">ยอดชำระทั้งหมด</p>
+              <p className="text-2xl font-display font-bold text-blue-600">฿{grandTotal.toLocaleString()}</p>
+            </div>
+
+            <button 
+              onClick={() => {
+                if(room.id) updateRoom(room.id, { isPaid: true });
+                setShowPaymentModal(false);
+              }}
+              className="w-full py-3.5 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-500/20 transition-all flex justify-center items-center gap-2"
+            >
+              <CheckCircle className="w-5 h-5" /> (จำลอง) ยืนยันการชำระเงินสำเร็จ
+            </button>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
