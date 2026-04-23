@@ -507,13 +507,13 @@ export default function AdminBilling() {
                       </div>
                     )}
                   </td>
-                  <td className="py-5 px-4">
+                  <td className="py-5 px-2">
                     {editingRoom === room.id ? (
                       <input 
                         type="number" 
                         value={editValues.customRent || ''} 
                         onChange={(e) => setEditValues({...editValues, customRent: Number(e.target.value)})}
-                        className="w-24 px-3 py-1.5 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold"
+                        className="w-20 px-2 py-1.5 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold text-center"
                       />
                     ) : (
                       <div className="flex flex-col">
@@ -524,18 +524,17 @@ export default function AdminBilling() {
                   </td>
                   
                   {/* Water */}
-                  <td className="py-5 px-4">
+                  <td className="py-5 px-2">
                     {room.activeBookingType === 'daily' ? (
                       <div className="flex justify-center text-slate-300 font-bold">-</div>
                     ) : editingRoom === room.id ? (
-                      <div className="flex items-center justify-center gap-2 bg-blue-50/50 p-2 rounded-xl border border-blue-100">
-                        <span className="text-slate-400 w-8 text-right font-medium">{room.lastWaterMeter || 0}</span>
-                        <span className="text-slate-300">/</span>
+                      <div className="flex items-center justify-center gap-1 bg-blue-50/50 p-1.5 rounded-xl border border-blue-100">
+                        <span className="text-slate-400 text-xs font-medium">{room.lastWaterMeter || 0}/</span>
                         <input 
                           type="number" 
                           value={editValues.currentWaterMeter || ''} 
                           onChange={(e) => setEditValues({...editValues, currentWaterMeter: Number(e.target.value)})}
-                          className="w-20 px-2 py-1.5 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white font-semibold text-center"
+                          className="w-14 px-1 py-1 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white font-semibold text-center text-sm"
                         />
                       </div>
                     ) : (
@@ -548,18 +547,17 @@ export default function AdminBilling() {
                   </td>
 
                   {/* Electric */}
-                  <td className="py-5 px-4">
+                  <td className="py-5 px-2">
                     {room.activeBookingType === 'daily' ? (
                       <div className="flex justify-center text-slate-300 font-bold">-</div>
                     ) : editingRoom === room.id ? (
-                      <div className="flex items-center justify-center gap-2 bg-amber-50/50 p-2 rounded-xl border border-amber-100">
-                        <span className="text-slate-400 w-8 text-right font-medium">{room.lastElectricMeter || 0}</span>
-                        <span className="text-slate-300">/</span>
+                      <div className="flex items-center justify-center gap-1 bg-amber-50/50 p-1.5 rounded-xl border border-amber-100">
+                        <span className="text-slate-400 text-xs font-medium">{room.lastElectricMeter || 0}/</span>
                         <input 
                           type="number" 
                           value={editValues.currentElectricMeter || ''} 
                           onChange={(e) => setEditValues({...editValues, currentElectricMeter: Number(e.target.value)})}
-                          className="w-20 px-2 py-1.5 border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 bg-white font-semibold text-center"
+                          className="w-14 px-1 py-1 border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 bg-white font-semibold text-center text-sm"
                         />
                       </div>
                     ) : (
@@ -604,7 +602,7 @@ export default function AdminBilling() {
                     {editingRoom === room.id ? (
                       <button 
                         onClick={() => handleSave(room.id)}
-                        className="px-5 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition shadow-md shadow-indigo-600/20 text-sm font-semibold flex items-center justify-center gap-2 ml-auto shrink-0 whitespace-nowrap"
+                        className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition shadow-md shadow-indigo-600/20 text-sm font-semibold flex items-center justify-center gap-1.5 ml-auto shrink-0 whitespace-nowrap"
                       >
                         <Save className="w-4 h-4" /> บันทึก
                       </button>
