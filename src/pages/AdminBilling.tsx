@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useData } from '../lib/DataContext';
 import { Room } from '../types';
-import { FileText, CheckCircle, Receipt, Save, Printer } from 'lucide-react';
+import { FileText, CheckCircle, Receipt, Save, Printer, CalendarDays } from 'lucide-react';
 import { cn, getRoomRent } from '../lib/utils';
 import * as motion from 'motion/react-client';
 
@@ -75,6 +75,16 @@ export default function AdminBilling() {
     });
     setEditingRoom(null);
     setEditValues({});
+  };
+
+  const handleNextMonth = async (room: Room) => {
+    if (!confirm(`ยืนยันการขึ้นรอบบิลใหม่สำหรับห้อง ${room.number}?\nมิเตอร์เดือนปัจจุบันจะถูกบันทึกเป็นมิเตอร์เดือนก่อนหน้า`)) return;
+    
+    await updateRoom(room.id, {
+      lastWaterMeter: room.currentWaterMeter || 0,
+      lastElectricMeter: room.currentElectricMeter || 0,
+      isPaid: false
+    });
   };
 
   const handlePrint = (room: Room) => {
@@ -318,6 +328,15 @@ export default function AdminBilling() {
                       </button>
                     ) : (
                       <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                        {room.isPaid && (
+                          <button 
+                            onClick={() => handleNextMonth(room)}
+                            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 rounded-xl transition text-xs font-bold border border-emerald-200/50"
+                            title="ขึ้นรอบบิลใหม่ (ยกยอดมิเตอร์และตั้งเป็นค้างชำระ)"
+                          >
+                            <CalendarDays className="w-3.5 h-3.5" /> ขึ้นรอบใหม่
+                          </button>
+                        )}
                         <button 
                           onClick={() => handlePrint(room)}
                           className="w-10 h-10 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-all"
