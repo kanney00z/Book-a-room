@@ -471,14 +471,12 @@ export default function AdminBilling() {
                         >
                           <Printer className="w-4 h-4 shrink-0" />
                         </button>
-                        {room.activeBookingType !== 'daily' && (
-                          <button 
-                            onClick={() => handleEdit(room)}
-                            className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition text-sm font-semibold shadow-sm shrink-0 whitespace-nowrap"
-                          >
-                            จดมิเตอร์
-                          </button>
-                        )}
+                        <button 
+                          onClick={() => handleEdit(room)}
+                          className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition text-sm font-semibold shadow-sm shrink-0 whitespace-nowrap"
+                        >
+                          {room.activeBookingType === 'daily' ? 'แก้ไขบิล' : 'จดมิเตอร์'}
+                        </button>
                       </div>
                     )}
                   </td>
