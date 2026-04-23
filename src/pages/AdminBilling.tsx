@@ -353,7 +353,9 @@ export default function AdminBilling() {
                   
                   {/* Water */}
                   <td className="py-5 px-4">
-                    {editingRoom === room.id ? (
+                    {room.activeBookingType === 'daily' ? (
+                      <div className="flex justify-center text-slate-300 font-bold">-</div>
+                    ) : editingRoom === room.id ? (
                       <div className="flex items-center justify-center gap-2 bg-blue-50/50 p-2 rounded-xl border border-blue-100">
                         <span className="text-slate-400 w-8 text-right font-medium">{room.lastWaterMeter || 0}</span>
                         <span className="text-slate-300">/</span>
@@ -375,7 +377,9 @@ export default function AdminBilling() {
 
                   {/* Electric */}
                   <td className="py-5 px-4">
-                    {editingRoom === room.id ? (
+                    {room.activeBookingType === 'daily' ? (
+                      <div className="flex justify-center text-slate-300 font-bold">-</div>
+                    ) : editingRoom === room.id ? (
                       <div className="flex items-center justify-center gap-2 bg-amber-50/50 p-2 rounded-xl border border-amber-100">
                         <span className="text-slate-400 w-8 text-right font-medium">{room.lastElectricMeter || 0}</span>
                         <span className="text-slate-300">/</span>
@@ -414,8 +418,12 @@ export default function AdminBilling() {
                       >
                         {room.isPaid ? 'ชำระแล้ว' : 'ค้างชำระ'}
                       </button>
-                      <span className="text-[10px] text-slate-500 font-medium bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
-                        {room.isPaid ? 'กำหนดรอบหน้า' : 'ครบกำหนด'} {getNextDueDate(room.moveInDate, room.isPaid)}
+                      <span className="text-[10px] text-slate-500 font-medium bg-slate-50 px-2 py-0.5 rounded border border-slate-100 text-center">
+                        {room.activeBookingType === 'daily' ? (
+                          <>เช็คเอาท์ {room.moveOutDate ? new Date(room.moveOutDate).toLocaleDateString('th-TH', { year: '2-digit', month: 'short', day: 'numeric' }) : '-'}</>
+                        ) : (
+                          <>{room.isPaid ? 'กำหนดรอบหน้า' : 'ครบกำหนด'} {getNextDueDate(room.moveInDate, room.isPaid)}</>
+                        )}
                       </span>
                     </div>
                   </td>
@@ -430,7 +438,7 @@ export default function AdminBilling() {
                       </button>
                     ) : (
                       <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                        {room.isPaid && (
+                        {room.isPaid && room.activeBookingType !== 'daily' && (
                           confirmRollover === room.id ? (
                             <div className="flex items-center gap-1">
                               <button 
@@ -463,12 +471,14 @@ export default function AdminBilling() {
                         >
                           <Printer className="w-4 h-4 shrink-0" />
                         </button>
-                        <button 
-                          onClick={() => handleEdit(room)}
-                          className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition text-sm font-semibold shadow-sm shrink-0 whitespace-nowrap"
-                        >
-                          จดมิเตอร์
-                        </button>
+                        {room.activeBookingType !== 'daily' && (
+                          <button 
+                            onClick={() => handleEdit(room)}
+                            className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition text-sm font-semibold shadow-sm shrink-0 whitespace-nowrap"
+                          >
+                            จดมิเตอร์
+                          </button>
+                        )}
                       </div>
                     )}
                   </td>
