@@ -22,6 +22,8 @@ export default function AdminRooms() {
   const [confirmDeleteType, setConfirmDeleteType] = useState<string | null>(null);
   
   const [newRoomType, setNewRoomType] = useState('');
+  const [newAmenitiesText, setNewAmenitiesText] = useState('');
+  const [editAmenitiesText, setEditAmenitiesText] = useState('');
 
   // New room form
   const [newRoom, setNewRoom] = useState({
@@ -82,7 +84,10 @@ export default function AdminRooms() {
 
   const handleAddRoom = (e: React.FormEvent) => {
     e.preventDefault();
-    addRoom(newRoom);
+    addRoom({
+      ...newRoom,
+      amenities: newAmenitiesText.split(',').map(s => s.trim()).filter(Boolean)
+    });
     setShowAddModal(false);
     setNewRoom({
       number: '',
@@ -94,12 +99,14 @@ export default function AdminRooms() {
       imageUrl: '',
       amenities: []
     });
+    setNewAmenitiesText('');
   };
 
   const handleEditClick = (room: Room) => {
     setShowEditModal(room);
     setConfirmDelete(false);
     setConfirmCheckout(false);
+    setEditAmenitiesText(room.amenities ? room.amenities.join(', ') : '');
     setEditRoomData({
       number: room.number,
       type: room.type,
@@ -116,7 +123,10 @@ export default function AdminRooms() {
   const handleSaveEdit = (e: React.FormEvent) => {
     e.preventDefault();
     if (showEditModal) {
-      updateRoom(showEditModal.id, editRoomData);
+      updateRoom(showEditModal.id, {
+        ...editRoomData,
+        amenities: editAmenitiesText.split(',').map(s => s.trim()).filter(Boolean)
+      });
       setShowEditModal(null);
     }
   };
@@ -377,8 +387,8 @@ export default function AdminRooms() {
                 <label className="block text-sm font-medium text-slate-700 mb-1">สิ่งอำนวยความสะดวก</label>
                 <input 
                   type="text" 
-                  value={newRoom.amenities?.join(', ') || ''}
-                  onChange={e => setNewRoom({...newRoom, amenities: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}
+                  value={newAmenitiesText}
+                  onChange={e => setNewAmenitiesText(e.target.value)}
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
                   placeholder="เช่น 30 ตร.ม., คีย์การ์ด, ฟรี WiFi, แอร์ (คั่นด้วยลูกน้ำ)"
                 />
@@ -512,8 +522,8 @@ export default function AdminRooms() {
                 <label className="block text-sm font-medium text-slate-700 mb-1">สิ่งอำนวยความสะดวก</label>
                 <input 
                   type="text" 
-                  value={editRoomData.amenities?.join(', ') || ''}
-                  onChange={e => setEditRoomData({...editRoomData, amenities: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}
+                  value={editAmenitiesText}
+                  onChange={e => setEditAmenitiesText(e.target.value)}
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
                   placeholder="เช่น 30 ตร.ม., คีย์การ์ด, ฟรี WiFi, แอร์ (คั่นด้วยลูกน้ำ)"
                 />
