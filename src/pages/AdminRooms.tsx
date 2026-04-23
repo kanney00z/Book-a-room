@@ -25,6 +25,9 @@ export default function AdminRooms() {
   const [newAmenitiesText, setNewAmenitiesText] = useState('');
   const [editAmenitiesText, setEditAmenitiesText] = useState('');
 
+  const [newRoomFormat, setNewRoomFormat] = useState<'monthly' | 'daily' | 'both'>('monthly');
+  const [editRoomFormat, setEditRoomFormat] = useState<'monthly' | 'daily' | 'both'>('monthly');
+
   // New room form
   const [newRoom, setNewRoom] = useState({
     number: '',
@@ -84,10 +87,17 @@ export default function AdminRooms() {
 
   const handleAddRoom = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const finalDailyRent = newRoomFormat === 'monthly' ? 0 : newRoom.dailyRent;
+    const finalMonthlyRent = newRoomFormat === 'daily' ? 0 : newRoom.monthlyRent;
+    
     addRoom({
       ...newRoom,
+      dailyRent: finalDailyRent,
+      monthlyRent: finalMonthlyRent,
       amenities: newAmenitiesText.split(',').map(s => s.trim()).filter(Boolean)
     });
+    
     setShowAddModal(false);
     setNewRoom({
       number: '',
@@ -100,6 +110,7 @@ export default function AdminRooms() {
       amenities: []
     });
     setNewAmenitiesText('');
+    setNewRoomFormat('monthly');
   };
 
   const handleEditClick = (room: Room) => {
@@ -107,6 +118,12 @@ export default function AdminRooms() {
     setConfirmDelete(false);
     setConfirmCheckout(false);
     setEditAmenitiesText(room.amenities ? room.amenities.join(', ') : '');
+    
+    let initialFormat: 'monthly' | 'daily' | 'both' = 'both';
+    if ((!room.dailyRent || room.dailyRent === 0) && room.monthlyRent > 0) initialFormat = 'monthly';
+    else if ((!room.monthlyRent || room.monthlyRent === 0) && room.dailyRent && room.dailyRent > 0) initialFormat = 'daily';
+    setEditRoomFormat(initialFormat);
+    
     setEditRoomData({
       number: room.number,
       type: room.type,
@@ -123,8 +140,13 @@ export default function AdminRooms() {
   const handleSaveEdit = (e: React.FormEvent) => {
     e.preventDefault();
     if (showEditModal) {
+      const finalDailyRent = editRoomFormat === 'monthly' ? 0 : editRoomData.dailyRent;
+      const finalMonthlyRent = editRoomFormat === 'daily' ? 0 : editRoomData.monthlyRent;
+      
       updateRoom(showEditModal.id, {
         ...editRoomData,
+        dailyRent: finalDailyRent,
+        monthlyRent: finalMonthlyRent,
         amenities: editAmenitiesText.split(',').map(s => s.trim()).filter(Boolean)
       });
       setShowEditModal(null);
@@ -367,29 +389,43 @@ export default function AdminRooms() {
                   />
                 </div>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">รูปแบบการให้เช่า</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button type="button" onClick={() => setNewRoomFormat('monthly')} className={cn("py-2 px-3 text-sm font-medium rounded-xl border transition-all", newRoomFormat === 'monthly' ? "bg-indigo-50 border-indigo-200 text-indigo-700 shadow-sm" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50")}>รายเดือน</button>
+                  <button type="button" onClick={() => setNewRoomFormat('daily')} className={cn("py-2 px-3 text-sm font-medium rounded-xl border transition-all", newRoomFormat === 'daily' ? "bg-indigo-50 border-indigo-200 text-indigo-700 shadow-sm" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50")}>รายวัน</button>
+                  <button type="button" onClick={() => setNewRoomFormat('both')} className={cn("py-2 px-3 text-sm font-medium rounded-xl border transition-all", newRoomFormat === 'both' ? "bg-indigo-50 border-indigo-200 text-indigo-700 shadow-sm" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50")}>ทั้งสองแบบ</button>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">ค่าเช่าต่อเดือน (บาท)</label>
-                  <input 
-                    required
-                    type="number" 
-                    min="0"
-                    value={newRoom.monthlyRent}
-                    onChange={e => setNewRoom({...newRoom, monthlyRent: parseInt(e.target.value) || 0})}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">ค่าเช่ารายวัน (บาท)</label>
-                  <input 
-                    type="number" 
-                    min="0"
-                    value={newRoom.dailyRent || 0}
-                    onChange={e => setNewRoom({...newRoom, dailyRent: parseInt(e.target.value) || 0})}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
-                    placeholder="ปล่อยว่างหากไม่มี"
-                  />
-                </div>
+                {(newRoomFormat === 'monthly' || newRoomFormat === 'both') && (
+                  <div className={newRoomFormat === 'monthly' ? "col-span-2" : ""}>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">ค่าเช่าต่อเดือน (บาท)</label>
+                    <input 
+                      required
+                      type="number" 
+                      min="0"
+                      value={newRoom.monthlyRent}
+                      onChange={e => setNewRoom({...newRoom, monthlyRent: parseInt(e.target.value) || 0})}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
+                    />
+                  </div>
+                )}
+                {(newRoomFormat === 'daily' || newRoomFormat === 'both') && (
+                  <div className={newRoomFormat === 'daily' ? "col-span-2" : ""}>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">ค่าเช่ารายวัน (บาท)</label>
+                    <input 
+                      required
+                      type="number" 
+                      min="0"
+                      value={newRoom.dailyRent || 0}
+                      onChange={e => setNewRoom({...newRoom, dailyRent: parseInt(e.target.value) || 0})}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
+                    />
+                  </div>
+                )}
               </div>
 
               <div>
@@ -505,29 +541,43 @@ export default function AdminRooms() {
                   </select>
                 </div>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">รูปแบบการให้เช่า</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button type="button" onClick={() => setEditRoomFormat('monthly')} className={cn("py-2 px-3 text-sm font-medium rounded-xl border transition-all", editRoomFormat === 'monthly' ? "bg-indigo-50 border-indigo-200 text-indigo-700 shadow-sm" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50")}>รายเดือน</button>
+                  <button type="button" onClick={() => setEditRoomFormat('daily')} className={cn("py-2 px-3 text-sm font-medium rounded-xl border transition-all", editRoomFormat === 'daily' ? "bg-indigo-50 border-indigo-200 text-indigo-700 shadow-sm" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50")}>รายวัน</button>
+                  <button type="button" onClick={() => setEditRoomFormat('both')} className={cn("py-2 px-3 text-sm font-medium rounded-xl border transition-all", editRoomFormat === 'both' ? "bg-indigo-50 border-indigo-200 text-indigo-700 shadow-sm" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50")}>ทั้งสองแบบ</button>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">ค่าเช่าต่อเดือน (บาท)</label>
-                  <input 
-                    required
-                    type="number" 
-                    min="0"
-                    value={editRoomData.monthlyRent || 0}
-                    onChange={e => setEditRoomData({...editRoomData, monthlyRent: parseInt(e.target.value) || 0})}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">ค่าเช่ารายวัน (บาท)</label>
-                  <input 
-                    type="number" 
-                    min="0"
-                    value={editRoomData.dailyRent || 0}
-                    onChange={e => setEditRoomData({...editRoomData, dailyRent: parseInt(e.target.value) || 0})}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
-                    placeholder="ปล่อยว่างหากไม่มี"
-                  />
-                </div>
+                {(editRoomFormat === 'monthly' || editRoomFormat === 'both') && (
+                  <div className={editRoomFormat === 'monthly' ? "col-span-2" : ""}>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">ค่าเช่าต่อเดือน (บาท)</label>
+                    <input 
+                      required
+                      type="number" 
+                      min="0"
+                      value={editRoomData.monthlyRent || 0}
+                      onChange={e => setEditRoomData({...editRoomData, monthlyRent: parseInt(e.target.value) || 0})}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
+                    />
+                  </div>
+                )}
+                {(editRoomFormat === 'daily' || editRoomFormat === 'both') && (
+                  <div className={editRoomFormat === 'daily' ? "col-span-2" : ""}>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">ค่าเช่ารายวัน (บาท)</label>
+                    <input 
+                      required
+                      type="number" 
+                      min="0"
+                      value={editRoomData.dailyRent || 0}
+                      onChange={e => setEditRoomData({...editRoomData, dailyRent: parseInt(e.target.value) || 0})}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
+                    />
+                  </div>
+                )}
               </div>
 
               <div>
