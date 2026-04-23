@@ -285,19 +285,21 @@ export default function AdminBilling() {
 
   return (
     <div className="space-y-6 h-full flex flex-col">
-      <div className="flex bg-white rounded-[1.5rem] border border-slate-100 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] items-center gap-6 relative overflow-hidden">
+      <div className="flex flex-col md:flex-row bg-white rounded-[1.5rem] border border-slate-100 p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] items-start md:items-center gap-4 md:gap-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-indigo-400/10 to-transparent rounded-bl-full -z-10"></div>
-        <div className="w-16 h-16 bg-gradient-to-br from-indigo-50 to-violet-100 text-indigo-700 rounded-[1.25rem] flex items-center justify-center shrink-0 shadow-sm border border-indigo-200/50">
-          <Receipt className="w-8 h-8" />
+        <div className="flex items-center gap-4 md:gap-6">
+          <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-indigo-50 to-violet-100 text-indigo-700 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border border-indigo-200/50">
+            <Receipt className="w-7 h-7 md:w-8 md:h-8" />
+          </div>
+          <div>
+            <h2 className="text-2xl md:text-3xl font-display font-bold text-slate-900 tracking-tight">ระบบจัดการค่าเช่าและบิล</h2>
+            <p className="text-sm md:text-base text-slate-500 mt-1 font-medium">บันทึกมิเตอร์น้ำ-ไฟ และสรุปยอดค่าใช้จ่ายประจำเดือนสำหรับผู้เช่าทั้งหมด</p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-3xl font-display font-bold text-slate-900 tracking-tight">ระบบจัดการค่าเช่าและบิล</h2>
-          <p className="text-slate-500 mt-2 font-medium">บันทึกมิเตอร์น้ำ-ไฟ และสรุปยอดค่าใช้จ่ายประจำเดือนสำหรับผู้เช่าทั้งหมด</p>
-        </div>
-        <div className="ml-auto">
+        <div className="md:ml-auto w-full md:w-auto mt-2 md:mt-0">
           <button 
             onClick={handlePrintAll}
-            className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white font-semibold rounded-xl hover:bg-indigo-600 transition-all duration-300 shadow-md hover:shadow-indigo-600/20"
+            className="w-full md:w-auto flex justify-center items-center gap-2 px-5 py-3 md:py-2.5 bg-slate-900 text-white font-semibold rounded-xl hover:bg-indigo-600 transition-all duration-300 shadow-md hover:shadow-indigo-600/20"
           >
             <FileText className="w-4 h-4" /> พิมพ์สรุปยอดทั้งหมด
           </button>
