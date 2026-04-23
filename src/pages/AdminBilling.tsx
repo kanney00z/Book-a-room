@@ -204,7 +204,7 @@ export default function AdminBilling() {
 
       <div className="bg-white rounded-[1.5rem] border border-slate-100 p-2 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex-1 flex flex-col overflow-hidden">
         <div className="overflow-x-auto flex-1 custom-scrollbar pb-4 pr-2">
-          <table className="w-full text-left border-collapse min-w-[800px]">
+          <table className="w-full text-left border-collapse min-w-[1050px]">
             <thead className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b-2 border-slate-100">
               <tr>
                 <th className="pb-4 px-4 text-slate-500 w-24">ห้องพัก</th>
@@ -213,8 +213,8 @@ export default function AdminBilling() {
                 <th className="pb-4 px-4 text-slate-500 text-center">มิเตอร์น้ำ <span className="text-[10px] font-normal lowercase tracking-normal">(ด.ก่อน/ปัจจุบัน)</span></th>
                 <th className="pb-4 px-4 text-slate-500 text-center">มิเตอร์ไฟ <span className="text-[10px] font-normal lowercase tracking-normal">(ด.ก่อน/ปัจจุบัน)</span></th>
                 <th className="pb-4 px-4 text-slate-500 text-right">ยอดรวม(฿)</th>
-                <th className="pb-4 px-4 text-center text-slate-500">สถานะ</th>
-                <th className="pb-4 px-4 text-right text-slate-500">จัดการ</th>
+                <th className="pb-4 px-4 text-center text-slate-500 w-32">สถานะ</th>
+                <th className="pb-4 px-4 text-right text-slate-500 w-48">จัดการ</th>
               </tr>
             </thead>
             <tbody className="text-sm text-slate-700 divide-y divide-slate-50">
