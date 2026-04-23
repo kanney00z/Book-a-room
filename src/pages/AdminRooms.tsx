@@ -300,9 +300,11 @@ export default function AdminRooms() {
                 <div className="h-full flex flex-col justify-center space-y-2 bg-gradient-to-br from-slate-50 to-white border border-slate-100 p-5 rounded-xl shadow-inner">
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">ราคาค่าเช่า</p>
                   <div className="flex flex-col gap-1">
-                    <p className="text-2xl font-display font-bold text-indigo-600">฿{room.monthlyRent.toLocaleString()}<span className="text-sm font-medium text-slate-500 ml-1">/เดือน</span></p>
+                    {room.monthlyRent > 0 && (
+                      <p className="text-2xl font-display font-bold text-indigo-600">฿{room.monthlyRent.toLocaleString()}<span className="text-sm font-medium text-slate-500 ml-1">/เดือน</span></p>
+                    )}
                     {room.dailyRent && room.dailyRent > 0 && (
-                      <p className="text-sm font-bold text-slate-600">฿{room.dailyRent.toLocaleString()}<span className="text-xs font-medium text-slate-400 ml-1">/วัน</span></p>
+                      <p className={room.monthlyRent > 0 ? "text-sm font-bold text-slate-600" : "text-2xl font-display font-bold text-indigo-600"}>฿{room.dailyRent.toLocaleString()}<span className={room.monthlyRent > 0 ? "text-xs font-medium text-slate-400 ml-1" : "text-sm font-medium text-slate-500 ml-1"}>/วัน</span></p>
                     )}
                   </div>
                 </div>

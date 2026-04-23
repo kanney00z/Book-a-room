@@ -222,7 +222,7 @@ export default function PublicBooking() {
                <div className="p-6 flex-1 flex flex-col">
                  <div className="flex justify-between items-end mb-6">
                    <div className="text-left w-full">
-                     {room.dailyRent ? (
+                     {room.dailyRent && room.dailyRent > 0 && room.monthlyRent && room.monthlyRent > 0 ? (
                        <div className="flex justify-between items-end w-full">
                          <div>
                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">รายเดือน</p>
@@ -237,6 +237,14 @@ export default function PublicBooking() {
                            </p>
                          </div>
                        </div>
+                     ) : room.dailyRent && room.dailyRent > 0 ? (
+                       <>
+                         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">ค่าเช่ารายวัน</p>
+                         <p className="text-3xl font-display font-bold text-indigo-600">
+                           ฿{room.dailyRent.toLocaleString()}
+                           <span className="text-base font-medium text-slate-500 ml-1">/วัน</span>
+                         </p>
+                       </>
                      ) : (
                        <>
                          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">ค่าเช่ารายเดือน</p>
