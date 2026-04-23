@@ -31,7 +31,8 @@ export default function AdminRooms() {
     monthlyRent: 4500,
     dailyRent: 500,
     status: 'vacant' as RoomStatus,
-    imageUrl: ''
+    imageUrl: '',
+    amenities: [] as string[]
   });
 
   // Edit room form
@@ -90,7 +91,8 @@ export default function AdminRooms() {
       monthlyRent: 4500,
       dailyRent: 500,
       status: 'vacant',
-      imageUrl: ''
+      imageUrl: '',
+      amenities: []
     });
   };
 
@@ -106,7 +108,8 @@ export default function AdminRooms() {
       dailyRent: room.dailyRent || 0,
       status: room.status,
       tenantName: room.tenantName || '',
-      imageUrl: room.imageUrl || ''
+      imageUrl: room.imageUrl || '',
+      amenities: room.amenities || []
     });
   };
 
@@ -371,6 +374,17 @@ export default function AdminRooms() {
               </div>
 
               <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">สิ่งอำนวยความสะดวก</label>
+                <input 
+                  type="text" 
+                  value={newRoom.amenities?.join(', ') || ''}
+                  onChange={e => setNewRoom({...newRoom, amenities: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
+                  placeholder="เช่น 30 ตร.ม., คีย์การ์ด, ฟรี WiFi, แอร์ (คั่นด้วยลูกน้ำ)"
+                />
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">รูปภาพห้องพัก</label>
                 <div className="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center hover:bg-slate-50 transition relative overflow-hidden">
                   {newRoom.imageUrl ? (
@@ -492,6 +506,17 @@ export default function AdminRooms() {
                     placeholder="ปล่อยว่างหากไม่มี"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">สิ่งอำนวยความสะดวก</label>
+                <input 
+                  type="text" 
+                  value={editRoomData.amenities?.join(', ') || ''}
+                  onChange={e => setEditRoomData({...editRoomData, amenities: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
+                  placeholder="เช่น 30 ตร.ม., คีย์การ์ด, ฟรี WiFi, แอร์ (คั่นด้วยลูกน้ำ)"
+                />
               </div>
 
               <div>

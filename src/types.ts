@@ -19,6 +19,7 @@ export interface Room {
   moveOutDate?: string;
   activeBookingType?: 'daily' | 'monthly';
   imageUrl?: string;
+  amenities?: string[];
   // Billing
   lastWaterMeter?: number;
   currentWaterMeter?: number;

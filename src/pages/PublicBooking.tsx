@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useData } from '../lib/DataContext';
 import { Room } from '../types';
-import { Search, Home, Building, ShieldCheck, Phone, ChevronRight, X, Users, Wifi, Wind } from 'lucide-react';
+import { Search, Home, Building, ShieldCheck, Phone, ChevronRight, X, Users, Wifi, Wind, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn, getRoomRent } from '../lib/utils';
 import * as motion from 'motion/react-client';
@@ -37,6 +37,15 @@ export default function PublicBooking() {
   const displayedRooms = selectedType === 'all' 
     ? vacantRooms 
     : vacantRooms.filter(r => r.type === selectedType);
+
+  const getAmenityIcon = (text: string) => {
+    const lower = text.toLowerCase();
+    if (lower.includes('wifi') || lower.includes('ไวไฟ') || lower.includes('เน็ต')) return <Wifi className="w-4 h-4 text-sky-500" />;
+    if (lower.includes('แอร์') || lower.includes('air')) return <Wind className="w-4 h-4 text-cyan-500" />;
+    if (lower.includes('คีย์การ์ด') || lower.includes('key')) return <ShieldCheck className="w-4 h-4 text-emerald-500" />;
+    if (lower.includes('ตร.ม.') || lower.includes('sqm')) return <Building className="w-4 h-4 text-indigo-500" />;
+    return <CheckCircle2 className="w-4 h-4 text-indigo-400" />;
+  };
 
   const handleNextStep = (e: React.FormEvent) => {
     e.preventDefault();
@@ -223,18 +232,28 @@ export default function PublicBooking() {
                  </div>
 
                  <div className="grid grid-cols-2 gap-y-3 gap-x-2 mb-8 text-sm font-medium text-slate-600 bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
-                   <div className="flex items-center gap-2">
-                     <Building className="w-4 h-4 text-indigo-500" /> 30 ตร.ม.
-                   </div>
-                   <div className="flex items-center gap-2">
-                     <ShieldCheck className="w-4 h-4 text-emerald-500" /> คีย์การ์ด
-                   </div>
-                   <div className="flex items-center gap-2">
-                     <Wifi className="w-4 h-4 text-sky-500" /> ฟรี WiFi
-                   </div>
-                   <div className="flex items-center gap-2">
-                     <Wind className="w-4 h-4 text-cyan-500" /> แอร์เย็นฉ่ำ
-                   </div>
+                   {(room.amenities && room.amenities.length > 0) ? (
+                     room.amenities.map((amenity, i) => (
+                       <div key={i} className="flex items-center gap-2">
+                         {getAmenityIcon(amenity)} {amenity}
+                       </div>
+                     ))
+                   ) : (
+                     <>
+                       <div className="flex items-center gap-2">
+                         <Building className="w-4 h-4 text-indigo-500" /> 30 ตร.ม.
+                       </div>
+                       <div className="flex items-center gap-2">
+                         <ShieldCheck className="w-4 h-4 text-emerald-500" /> คีย์การ์ด
+                       </div>
+                       <div className="flex items-center gap-2">
+                         <Wifi className="w-4 h-4 text-sky-500" /> ฟรี WiFi
+                       </div>
+                       <div className="flex items-center gap-2">
+                         <Wind className="w-4 h-4 text-cyan-500" /> แอร์เย็นฉ่ำ
+                       </div>
+                     </>
+                   )}
                  </div>
 
                  <div className="mt-auto">
