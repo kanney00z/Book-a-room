@@ -317,9 +317,9 @@ export default function AdminRooms() {
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-3xl border border-slate-200 p-8 max-w-md w-full shadow-2xl"
+            className="bg-white rounded-3xl border border-slate-200 w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden shadow-2xl"
           >
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100 shrink-0 bg-white">
               <div>
                 <h3 className="text-2xl font-bold text-slate-800">เพิ่มห้องพักใหม่</h3>
                 <p className="text-sm text-slate-500">กรอกข้อมูลเพื่อเพิ่มเข้าสู่ระบบ</p>
@@ -329,7 +329,8 @@ export default function AdminRooms() {
               </button>
             </div>
 
-            <form onSubmit={handleAddRoom} className="space-y-4">
+            <form id="add-room-form" onSubmit={handleAddRoom} className="flex flex-col overflow-hidden h-full">
+              <div className="p-6 overflow-y-auto custom-scrollbar space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">หมายเลขห้อง</label>
                 <input 
@@ -420,10 +421,12 @@ export default function AdminRooms() {
                   )}
                 </div>
               </div>
+              </div>
               
-              <div className="pt-2">
+              <div className="p-6 border-t border-slate-100 bg-white shrink-0">
                 <button 
                   type="submit"
+                  form="add-room-form"
                   className="w-full py-3 font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition shadow-sm flex justify-center items-center gap-2"
                 >
                   <Plus className="w-5 h-5" /> บันทึกข้อมูล
@@ -439,22 +442,22 @@ export default function AdminRooms() {
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-3xl border border-slate-200 p-8 max-w-md w-full shadow-2xl"
+            className="bg-white rounded-3xl border border-slate-200 w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden shadow-2xl"
           >
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100 shrink-0 bg-white">
               <div>
                 <h3 className="text-2xl font-bold text-slate-800">แก้ไขข้อมูลห้อง {showEditModal.number}</h3>
                 <p className="text-sm text-slate-500">อัปเดตข้อมูลของห้องพัก</p>
               </div>
               <div className="flex items-center gap-2">
                 {confirmDelete ? (
-                  <div className="flex items-center gap-1 bg-rose-50 px-2 py-1 rounded-full">
-                    <span className="text-xs text-rose-600 font-medium px-2">ยืนยัน?</span>
-                    <button type="button" onClick={handleDeleteRoom} className="px-2 py-1 bg-rose-500 text-white rounded-full text-xs hover:bg-rose-600 transition">ลบ</button>
-                    <button type="button" onClick={() => setConfirmDelete(false)} className="px-2 py-1 bg-slate-200 text-slate-700 rounded-full text-xs hover:bg-slate-300 transition">ยกเลิก</button>
+                  <div className="flex items-center gap-1 bg-rose-50 px-2 py-1.5 rounded-xl border border-rose-100">
+                    <span className="text-xs font-bold text-rose-600 mr-1">ลบห้องนี้?</span>
+                    <button onClick={handleDeleteRoom} className="p-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg transition"><Check className="w-4 h-4" /></button>
+                    <button onClick={() => setConfirmDelete(false)} className="p-1.5 bg-white text-slate-500 hover:text-slate-700 rounded-lg shadow-sm border border-slate-200 transition"><X className="w-4 h-4" /></button>
                   </div>
                 ) : (
-                  <button type="button" onClick={() => setConfirmDelete(true)} className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition p-2 rounded-full" title="ลบห้องนี้ทิ้ง">
+                  <button onClick={() => setConfirmDelete(true)} className="p-2 text-slate-400 hover:text-rose-500 bg-slate-50 hover:bg-rose-50 rounded-xl transition" title="ลบห้องพัก">
                     <Trash2 className="w-5 h-5" />
                   </button>
                 )}
@@ -464,7 +467,8 @@ export default function AdminRooms() {
               </div>
             </div>
 
-            <form onSubmit={handleSaveEdit} className="space-y-4">
+            <form id="edit-room-form" onSubmit={handleSaveEdit} className="flex flex-col overflow-hidden h-full">
+              <div className="p-6 overflow-y-auto custom-scrollbar space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">หมายเลขห้อง</label>
                 <input 
@@ -588,10 +592,12 @@ export default function AdminRooms() {
                   </div>
                 </div>
               )}
+              </div>
               
-              <div className="pt-4 mt-4 border-t border-slate-100">
+              <div className="p-6 border-t border-slate-100 bg-white shrink-0">
                 <button 
                   type="submit"
+                  form="edit-room-form"
                   className="w-full py-3 font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition shadow-sm flex justify-center items-center gap-2"
                 >
                   <Save className="w-5 h-5" /> บันทึกการแก้ไข
