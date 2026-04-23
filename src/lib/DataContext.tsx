@@ -2,6 +2,11 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Room, BookingRequest, RoomStatus, RoomType, MaintenanceRequest } from '../types';
 import { supabase } from './supabase';
 
+interface AppSettings {
+  promptpayNumber: string;
+  promptpayName: string;
+}
+
 interface DataContextType {
   rooms: Room[];
   bookings: BookingRequest[];
@@ -17,6 +22,8 @@ interface DataContextType {
   deleteRoomType: (id: string) => Promise<void>;
   addMaintenanceRequest: (req: Omit<MaintenanceRequest, 'id' | 'createdAt' | 'status'>) => void;
   updateMaintenanceStatus: (id: string, status: MaintenanceRequest['status']) => void;
+  settings: AppSettings;
+  updateSettings: (settings: AppSettings) => void;
   isConfigured: boolean;
 }
 
@@ -34,6 +41,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     { id: 'm1', roomId: '1', title: 'แอร์น้ำหยด', description: 'แอร์มีน้ำหยดลงมาตรงปลายเตียงครับ', status: 'pending', createdAt: new Date().toISOString() },
     { id: 'm2', roomId: '2', title: 'หลอดไฟห้องน้ำขาด', description: 'เปิดไม่ติดเลยครับ', status: 'in_progress', createdAt: new Date().toISOString() }
   ]);
+  
+  const [settings, setSettings] = useState<AppSettings>(() => {
+    const saved = localStorage.getItem('adminSettings');
+    return saved ? JSON.parse(saved) : { promptpayNumber: '0812345678', promptpayName: 'เจ้าของหอพัก' };
+  });
+
+  const updateSettings = (newSettings: AppSettings) => {
+    setSettings(newSettings);
+    localStorage.setItem('adminSettings', JSON.stringify(newSettings));
+  };
   
   const isConfigured = !!(import.meta as any).env.VITE_SUPABASE_URL && !!(import.meta as any).env.VITE_SUPABASE_ANON_KEY;
 
@@ -224,6 +241,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       addBooking, approveBooking, rejectBooking, 
       addRoomType, deleteRoomType, 
       addMaintenanceRequest, updateMaintenanceStatus,
+      settings, updateSettings,
       isConfigured 
     }}>
       {children}

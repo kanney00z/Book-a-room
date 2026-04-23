@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { useData } from '../lib/DataContext';
 import { Room } from '../types';
-import { FileText, CheckCircle, Receipt, Save, Printer, CalendarDays } from 'lucide-react';
+import { FileText, CheckCircle, Receipt, Save, Printer, CalendarDays, Settings, X, QrCode } from 'lucide-react';
 import { cn, getRoomRent } from '../lib/utils';
 import * as motion from 'motion/react-client';
 
 export default function AdminBilling() {
-  const { rooms, updateRoom } = useData();
+  const { rooms, updateRoom, settings, updateSettings } = useData();
   const occupiedRooms = rooms.filter(r => r.status === 'occupied');
+
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [tempSettings, setTempSettings] = useState({ promptpayNumber: '', promptpayName: '' });
 
   const [editingRoom, setEditingRoom] = useState<string | null>(null);
   const [confirmRollover, setConfirmRollover] = useState<string | null>(null);
@@ -296,7 +299,16 @@ export default function AdminBilling() {
             <p className="text-sm md:text-base text-slate-500 mt-1 font-medium">บันทึกมิเตอร์น้ำ-ไฟ และสรุปยอดค่าใช้จ่ายประจำเดือนสำหรับผู้เช่าทั้งหมด</p>
           </div>
         </div>
-        <div className="md:ml-auto w-full md:w-auto mt-2 md:mt-0">
+        <div className="md:ml-auto w-full md:w-auto mt-2 md:mt-0 flex flex-col md:flex-row gap-3">
+          <button 
+            onClick={() => {
+              setTempSettings(settings);
+              setShowSettingsModal(true);
+            }}
+            className="w-full md:w-auto flex justify-center items-center gap-2 px-5 py-3 md:py-2.5 bg-white text-slate-700 border border-slate-200 font-semibold rounded-xl hover:bg-slate-50 transition-all duration-300 shadow-sm hover:shadow-md"
+          >
+            <Settings className="w-4 h-4" /> ตั้งค่าการรับเงิน
+          </button>
           <button 
             onClick={handlePrintAll}
             className="w-full md:w-auto flex justify-center items-center gap-2 px-5 py-3 md:py-2.5 bg-slate-900 text-white font-semibold rounded-xl hover:bg-indigo-600 transition-all duration-300 shadow-md hover:shadow-indigo-600/20"
@@ -666,6 +678,72 @@ export default function AdminBilling() {
           </table>
         </div>
       </div>
+
+      {/* Settings Modal */}
+      {showSettingsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="bg-white rounded-[2rem] border border-slate-200 p-8 max-w-md w-full shadow-2xl relative overflow-hidden"
+          >
+            <button 
+              onClick={() => setShowSettingsModal(false)} 
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition p-2 bg-slate-50 hover:bg-slate-100 rounded-full"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
+                <QrCode className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-800 font-display">ตั้งค่าการรับเงิน (PromptPay)</h3>
+                <p className="text-sm text-slate-500 font-medium">ข้อมูลนี้จะแสดงให้ผู้เช่าเห็นเมื่อสแกนจ่ายค่าเช่า</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อบัญชีรับเงิน (ชื่อ-นามสกุล / ชื่อบริษัท)</label>
+                <input 
+                  type="text" 
+                  value={tempSettings.promptpayName}
+                  onChange={e => setTempSettings({...tempSettings, promptpayName: e.target.value})}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium"
+                  placeholder="เช่น นาย สมมติ ทดสอบ"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">เบอร์โทรศัพท์ / เลขบัตรประชาชน (PromptPay)</label>
+                <input 
+                  type="text" 
+                  value={tempSettings.promptpayNumber}
+                  onChange={e => setTempSettings({...tempSettings, promptpayNumber: e.target.value})}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium tracking-wide"
+                  placeholder="เช่น 0812345678"
+                />
+                <p className="text-xs text-slate-400 mt-2 font-medium flex items-center gap-1.5">
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> รูปแบบตัวเลขติดกัน ไม่มีขีด
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-8">
+              <button 
+                onClick={() => {
+                  updateSettings(tempSettings);
+                  setShowSettingsModal(false);
+                }}
+                className="w-full py-3.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 shadow-md hover:shadow-indigo-600/20 transition-all flex justify-center items-center gap-2"
+              >
+                <Save className="w-5 h-5" /> บันทึกการตั้งค่า
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
