@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useData } from '../lib/DataContext';
 import { Room } from '../types';
-import { Search, Home, Building, ShieldCheck, Phone, ChevronRight, X, Users, Wifi, Wind, CheckCircle2 } from 'lucide-react';
+import { Search, Home, Building, ShieldCheck, Phone, ChevronRight, X, Users, Wifi, Wind, CheckCircle2, XCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn, getRoomRent } from '../lib/utils';
 import * as motion from 'motion/react-client';
@@ -38,13 +38,31 @@ export default function PublicBooking() {
     ? vacantRooms 
     : vacantRooms.filter(r => r.type === selectedType);
 
-  const getAmenityIcon = (text: string) => {
+  const getAmenityConfig = (text: string) => {
     const lower = text.toLowerCase();
-    if (lower.includes('wifi') || lower.includes('ไวไฟ') || lower.includes('เน็ต')) return <Wifi className="w-4 h-4 text-sky-500" />;
-    if (lower.includes('แอร์') || lower.includes('air')) return <Wind className="w-4 h-4 text-cyan-500" />;
-    if (lower.includes('คีย์การ์ด') || lower.includes('key')) return <ShieldCheck className="w-4 h-4 text-emerald-500" />;
-    if (lower.includes('ตร.ม.') || lower.includes('sqm')) return <Building className="w-4 h-4 text-indigo-500" />;
-    return <CheckCircle2 className="w-4 h-4 text-indigo-400" />;
+    const isNegative = lower.includes('ไม่มี') || lower.startsWith('no ');
+    
+    let Icon = isNegative ? XCircle : CheckCircle2;
+    let color = isNegative ? 'text-slate-400' : 'text-indigo-400';
+    
+    if (lower.includes('wifi') || lower.includes('ไวไฟ') || lower.includes('เน็ต')) {
+      Icon = Wifi;
+      color = isNegative ? 'text-slate-400' : 'text-sky-500';
+    } else if (lower.includes('แอร์') || lower.includes('air')) {
+      Icon = Wind;
+      color = isNegative ? 'text-slate-400' : 'text-cyan-500';
+    } else if (lower.includes('คีย์การ์ด') || lower.includes('key')) {
+      Icon = ShieldCheck;
+      color = isNegative ? 'text-slate-400' : 'text-emerald-500';
+    } else if (lower.includes('ตร.ม.') || lower.includes('sqm')) {
+      Icon = Building;
+      color = 'text-indigo-500';
+    }
+    
+    return {
+      icon: <Icon className={`w-4 h-4 ${color}`} />,
+      isNegative
+    };
   };
 
   const handleNextStep = (e: React.FormEvent) => {
@@ -233,11 +251,14 @@ export default function PublicBooking() {
 
                  <div className="grid grid-cols-2 gap-y-3 gap-x-2 mb-8 text-sm font-medium text-slate-600 bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
                    {(room.amenities && room.amenities.length > 0) ? (
-                     room.amenities.map((amenity, i) => (
-                       <div key={i} className="flex items-center gap-2">
-                         {getAmenityIcon(amenity)} {amenity}
-                       </div>
-                     ))
+                     room.amenities.map((amenity, i) => {
+                       const { icon, isNegative } = getAmenityConfig(amenity);
+                       return (
+                         <div key={i} className={cn("flex items-center gap-2", isNegative ? "text-slate-400" : "")}>
+                           {icon} <span>{amenity}</span>
+                         </div>
+                       );
+                     })
                    ) : (
                      <>
                        <div className="flex items-center gap-2">
