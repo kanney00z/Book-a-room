@@ -8,7 +8,7 @@ import * as motion from 'motion/react-client';
 import FloorPlanView from '../components/FloorPlanView';
 
 export default function AdminRooms() {
-  const { rooms, roomTypes, addRoom, updateRoom, deleteRoom, addRoomType, deleteRoomType } = useData();
+  const { rooms, roomTypes, addRoom, updateRoom, deleteRoom, addRoomType, deleteRoomType, sendLineNotification } = useData();
   const [filter, setFilter] = useState<'all' | 'vacant' | 'occupied'>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'floorplan'>('grid');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -164,6 +164,14 @@ export default function AdminRooms() {
 
   const handleCheckout = () => {
     if (!showEditModal) return;
+    
+    // Send Line Notification for Check Out
+    sendLineNotification({
+      type: 'checkout',
+      roomNumber: showEditModal.number,
+      tenantName: showEditModal.tenantName
+    });
+
     updateRoom(showEditModal.id, {
       status: 'vacant',
       tenantName: null as any,

@@ -20,6 +20,7 @@ interface DataContextType {
   rejectBooking: (bookingId: string) => Promise<void>;
   addRoomType: (name: string) => Promise<void>;
   deleteRoomType: (id: string) => Promise<void>;
+  sendLineNotification: (payload: any) => Promise<void>;
   addMaintenanceRequest: (req: Omit<MaintenanceRequest, 'id' | 'createdAt' | 'status'>) => void;
   updateMaintenanceStatus: (id: string, status: MaintenanceRequest['status']) => void;
   settings: AppSettings;
@@ -239,7 +240,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       rooms, bookings, roomTypes, maintenanceRequests,
       updateRoom, addRoom, deleteRoom, 
       addBooking, approveBooking, rejectBooking, 
-      addRoomType, deleteRoomType, 
+      addRoomType, deleteRoomType, sendLineNotification,
       addMaintenanceRequest, updateMaintenanceStatus,
       settings, updateSettings,
       isConfigured 
