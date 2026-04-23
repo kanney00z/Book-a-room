@@ -133,7 +133,10 @@ export default function AdminRooms() {
       status: room.status,
       tenantName: room.tenantName || '',
       imageUrl: room.imageUrl || '',
-      amenities: room.amenities || []
+      amenities: room.amenities || [],
+      activeBookingType: room.activeBookingType || 'monthly',
+      moveInDate: room.moveInDate || '',
+      moveOutDate: room.moveOutDate || ''
     });
   };
 
@@ -166,6 +169,7 @@ export default function AdminRooms() {
       tenantName: null as any,
       tenantPhone: null as any,
       moveInDate: null as any,
+      moveOutDate: null as any,
       activeBookingType: null as any,
       currentWaterMeter: 0,
       lastWaterMeter: 0,
@@ -288,11 +292,21 @@ export default function AdminRooms() {
                     </span>
                   </div>
                   {room.moveInDate && (
-                    <div className="text-xs text-slate-500 flex justify-between px-2 pt-1">
-                      <span>วันที่เข้าพัก:</span>
-                      <span className="font-semibold text-emerald-600">
-                        {new Date(room.moveInDate).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}
-                      </span>
+                    <div className="text-xs text-slate-500 flex flex-col gap-1 px-2 pt-1">
+                      <div className="flex justify-between">
+                        <span>วันที่เข้าพัก:</span>
+                        <span className="font-semibold text-emerald-600">
+                          {new Date(room.moveInDate).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}
+                        </span>
+                      </div>
+                      {room.activeBookingType === 'daily' && room.moveOutDate && (
+                        <div className="flex justify-between">
+                          <span>วันที่เช็คเอาท์:</span>
+                          <span className="font-semibold text-rose-500">
+                            {new Date(room.moveOutDate).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -624,6 +638,48 @@ export default function AdminRooms() {
                       placeholder="ชื่อ-นามสกุล ผู้เช่า"
                     />
                   </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">ประเภทการเข้าพัก</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button type="button" onClick={() => setEditRoomData({...editRoomData, activeBookingType: 'monthly'})} className={cn("py-2 px-3 text-sm font-medium rounded-xl border transition-all", (!editRoomData.activeBookingType || editRoomData.activeBookingType === 'monthly') ? "bg-indigo-50 border-indigo-200 text-indigo-700 shadow-sm" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50")}>รายเดือน</button>
+                      <button type="button" onClick={() => setEditRoomData({...editRoomData, activeBookingType: 'daily'})} className={cn("py-2 px-3 text-sm font-medium rounded-xl border transition-all", editRoomData.activeBookingType === 'daily' ? "bg-indigo-50 border-indigo-200 text-indigo-700 shadow-sm" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50")}>รายวัน</button>
+                    </div>
+                  </div>
+
+                  {editRoomData.activeBookingType === 'daily' && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">วันที่เช็คอิน</label>
+                        <input 
+                          type="date" 
+                          value={editRoomData.moveInDate || ''}
+                          onChange={e => setEditRoomData({...editRoomData, moveInDate: e.target.value})}
+                          className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">วันที่เช็คเอาท์</label>
+                        <input 
+                          type="date" 
+                          value={editRoomData.moveOutDate || ''}
+                          onChange={e => setEditRoomData({...editRoomData, moveOutDate: e.target.value})}
+                          className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {editRoomData.activeBookingType === 'daily' && editRoomData.moveInDate && editRoomData.moveOutDate && (
+                    <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-100 flex justify-between items-center">
+                      <span className="text-sm font-medium text-indigo-900">
+                        ยอดชำระรวม ({Math.max(1, Math.ceil(Math.abs(new Date(editRoomData.moveOutDate).getTime() - new Date(editRoomData.moveInDate).getTime()) / (1000 * 60 * 60 * 24)))} คืน):
+                      </span>
+                      <span className="text-xl font-bold text-indigo-700">
+                        ฿{((editRoomData.dailyRent || 0) * Math.max(1, Math.ceil(Math.abs(new Date(editRoomData.moveOutDate).getTime() - new Date(editRoomData.moveInDate).getTime()) / (1000 * 60 * 60 * 24)))).toLocaleString()}
+                      </span>
+                    </div>
+                  )}
                   
                   <div className="pt-2">
                     {confirmCheckout ? (
