@@ -304,8 +304,180 @@ export default function AdminBilling() {
         </div>
       </div>
 
-      <div className="bg-white rounded-[1.5rem] border border-slate-100 p-2 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex-1 flex flex-col overflow-hidden">
-        <div className="overflow-x-auto flex-1 custom-scrollbar pb-4 pr-2">
+      <div className="bg-white rounded-[1.5rem] border border-slate-100 p-3 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex-1 flex flex-col overflow-hidden">
+        
+        {/* Mobile View (Cards) */}
+        <div className="lg:hidden space-y-4 pb-4 overflow-y-auto flex-1 custom-scrollbar pr-1">
+          {occupiedRooms.map(room => (
+            <div key={room.id} className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm flex flex-col gap-3 relative">
+              {/* Header: Room Number & Tenant & Print Button */}
+              <div className="flex justify-between items-start border-b border-slate-50 pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-700 flex flex-col items-center justify-center font-display shadow-inner border border-slate-200/50">
+                    <span className="text-base font-bold leading-none">{room.number}</span>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-slate-800">{room.tenantName}</div>
+                    {room.moveInDate && (
+                      <div className="text-[11px] text-emerald-600 font-medium mt-0.5">
+                        เข้าพัก: {new Date(room.moveInDate).toLocaleDateString('th-TH', { year: '2-digit', month: 'short', day: 'numeric' })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <button 
+                  onClick={() => handlePrint(room)}
+                  className="w-10 h-10 flex items-center justify-center bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl transition-all"
+                >
+                  <Printer className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Body: Rent & Meters */}
+              <div className="grid grid-cols-2 gap-3 py-2">
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">ค่าเช่า</span>
+                  {editingRoom === room.id ? (
+                    <input 
+                      type="number" 
+                      value={editValues.customRent || ''} 
+                      onChange={(e) => setEditValues({...editValues, customRent: Number(e.target.value)})}
+                      className="w-full mt-1 px-3 py-1.5 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold"
+                    />
+                  ) : (
+                    <div className="mt-1 font-bold text-slate-700 flex items-center gap-1">
+                      ฿{getRoomRent(room).toLocaleString()} 
+                      <span className="text-[10px] font-medium text-slate-400 font-normal">{room.activeBookingType === 'daily' ? '(รายวัน)' : ''}</span>
+                    </div>
+                  )}
+                </div>
+                
+                {room.activeBookingType !== 'daily' && (
+                  <>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">มิเตอร์น้ำ</span>
+                      {editingRoom === room.id ? (
+                        <div className="flex items-center gap-1 mt-1 bg-blue-50/50 p-1.5 rounded-lg border border-blue-100">
+                          <span className="text-slate-400 text-xs font-medium">{room.lastWaterMeter || 0}/</span>
+                          <input 
+                            type="number" 
+                            value={editValues.currentWaterMeter || ''} 
+                            onChange={(e) => setEditValues({...editValues, currentWaterMeter: Number(e.target.value)})}
+                            className="w-full px-1 py-1 border border-blue-200 rounded focus:outline-none bg-white font-semibold text-center text-xs min-w-[3rem]"
+                          />
+                        </div>
+                      ) : (
+                        <div className="mt-1 font-bold text-blue-600">{room.lastWaterMeter || 0} <span className="text-slate-300 font-normal">/</span> {room.currentWaterMeter || 0}</div>
+                      )}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">มิเตอร์ไฟ</span>
+                      {editingRoom === room.id ? (
+                        <div className="flex items-center gap-1 mt-1 bg-amber-50/50 p-1.5 rounded-lg border border-amber-100">
+                          <span className="text-slate-400 text-xs font-medium">{room.lastElectricMeter || 0}/</span>
+                          <input 
+                            type="number" 
+                            value={editValues.currentElectricMeter || ''} 
+                            onChange={(e) => setEditValues({...editValues, currentElectricMeter: Number(e.target.value)})}
+                            className="w-full px-1 py-1 border border-amber-200 rounded focus:outline-none bg-white font-semibold text-center text-xs min-w-[3rem]"
+                          />
+                        </div>
+                      ) : (
+                        <div className="mt-1 font-bold text-amber-600">{room.lastElectricMeter || 0} <span className="text-slate-300 font-normal">/</span> {room.currentElectricMeter || 0}</div>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Footer: Total & Actions */}
+              <div className="flex items-center justify-between border-t border-slate-50 pt-3">
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block">ยอดรวม</span>
+                  <span className="text-lg font-display font-bold text-slate-900">
+                    ฿{calculateTotal(room).toLocaleString()}
+                  </span>
+                </div>
+                
+                <div className="flex flex-col items-end gap-1.5">
+                  <button 
+                    onClick={() => togglePaid(room.id, !!room.isPaid)}
+                    className={cn(
+                      "px-4 py-1.5 text-xs font-bold rounded-full transition-all shadow-sm w-full max-w-[100px]",
+                      room.isPaid 
+                        ? "bg-emerald-100/80 text-emerald-700 border border-emerald-200" 
+                        : "bg-rose-100 text-rose-700 border border-rose-200"
+                    )}
+                  >
+                    {room.isPaid ? 'ชำระแล้ว' : 'ค้างชำระ'}
+                  </button>
+                  <span className="text-[10px] text-slate-500 font-medium">
+                    {room.activeBookingType === 'daily' ? (
+                      <>เช็คเอาท์: {room.moveOutDate ? new Date(room.moveOutDate).toLocaleDateString('th-TH', { year: '2-digit', month: 'short', day: 'numeric' }) : '-'}</>
+                    ) : (
+                      <>{room.isPaid ? 'รอบหน้า:' : 'ครบกำหนด:'} {getNextDueDate(room.moveInDate, room.isPaid)}</>
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons: Save / Edit / Rollover */}
+              <div className="mt-2 flex gap-2">
+                {editingRoom === room.id ? (
+                  <button 
+                    onClick={() => handleSave(room.id)}
+                    className="w-full py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition shadow-md shadow-indigo-600/20 text-sm font-semibold flex items-center justify-center gap-2"
+                  >
+                    <Save className="w-4 h-4" /> บันทึก
+                  </button>
+                ) : (
+                  <>
+                    {room.isPaid && room.activeBookingType !== 'daily' && (
+                      confirmRollover === room.id ? (
+                        <div className="w-full flex gap-1">
+                          <button 
+                            onClick={() => handleNextMonth(room.id)}
+                            className="flex-1 py-2 bg-rose-500 text-white rounded-xl text-xs font-bold shadow-sm"
+                          >
+                            ยืนยันขึ้นรอบใหม่
+                          </button>
+                          <button 
+                            onClick={() => setConfirmRollover(null)}
+                            className="px-3 py-2 bg-slate-200 text-slate-700 rounded-xl text-xs font-bold shadow-sm"
+                          >
+                            ยกเลิก
+                          </button>
+                        </div>
+                      ) : (
+                        <button 
+                          onClick={() => setConfirmRollover(room.id)}
+                          className="flex-1 py-2 bg-emerald-50 text-emerald-700 rounded-xl text-xs font-bold border border-emerald-200/50 flex items-center justify-center gap-1.5 shadow-sm"
+                        >
+                          <CalendarDays className="w-3.5 h-3.5" /> ขึ้นรอบใหม่
+                        </button>
+                      )
+                    )}
+                    <button 
+                      onClick={() => handleEdit(room)}
+                      className="flex-1 py-2 bg-slate-100 border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-200 transition text-sm font-semibold shadow-sm"
+                    >
+                      {room.activeBookingType === 'daily' ? 'แก้ไขบิล' : 'จดมิเตอร์'}
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+          
+          {occupiedRooms.length === 0 && (
+            <div className="py-12 text-center text-slate-500 bg-slate-50 rounded-2xl border border-slate-100">
+              ไม่มีห้องที่มีผู้เช่าในขณะนี้
+            </div>
+          )}
+        </div>
+
+        {/* Desktop View (Table) */}
+        <div className="hidden lg:block overflow-x-auto flex-1 custom-scrollbar pb-4 pr-2">
           <table className="w-full text-left border-collapse min-w-[800px]">
             <thead className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b-2 border-slate-100">
               <tr>
