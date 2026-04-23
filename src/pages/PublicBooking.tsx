@@ -287,13 +287,16 @@ export default function PublicBooking() {
                  </div>
 
                  <div className="mt-auto">
-                   <button 
-                     onClick={() => setShowModal(room)}
-                     className="w-full py-3.5 bg-slate-900 text-white rounded-xl font-semibold hover:bg-indigo-600 hover:shadow-lg hover:shadow-indigo-600/20 transition-all duration-300 flex justify-center items-center gap-2"
-                   >
-                     จองห้องพัก <ChevronRight className="w-4 h-4" />
-                   </button>
-                 </div>
+                    <button 
+                      onClick={() => {
+                        setShowModal(room);
+                        setFormData({...formData, bookingType: room.monthlyRent > 0 ? 'monthly' : 'daily'});
+                      }}
+                      className="w-full py-3.5 bg-slate-900 text-white rounded-xl font-semibold hover:bg-indigo-600 hover:shadow-lg hover:shadow-indigo-600/20 transition-all duration-300 flex justify-center items-center gap-2"
+                    >
+                      จองห้องพัก <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
                </div>
              </motion.div>
             ))}
