@@ -203,8 +203,8 @@ export default function AdminBilling() {
       </div>
 
       <div className="bg-white rounded-[1.5rem] border border-slate-100 p-2 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex-1 flex flex-col overflow-hidden">
-        <div className="overflow-x-auto flex-1 custom-scrollbar pb-4">
-          <table className="min-w-full w-max text-left border-collapse">
+        <div className="overflow-x-auto flex-1 custom-scrollbar pb-4 pr-2">
+          <table className="w-full text-left border-collapse min-w-[800px]">
             <thead className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b-2 border-slate-100">
               <tr>
                 <th className="pb-4 px-4 text-slate-500 w-24">ห้องพัก</th>
@@ -213,8 +213,8 @@ export default function AdminBilling() {
                 <th className="pb-4 px-4 text-slate-500 text-center">มิเตอร์น้ำ <span className="text-[10px] font-normal lowercase tracking-normal">(ด.ก่อน/ปัจจุบัน)</span></th>
                 <th className="pb-4 px-4 text-slate-500 text-center">มิเตอร์ไฟ <span className="text-[10px] font-normal lowercase tracking-normal">(ด.ก่อน/ปัจจุบัน)</span></th>
                 <th className="pb-4 px-4 text-slate-500 text-right">ยอดรวม(฿)</th>
-                <th className="pb-4 px-4 text-center text-slate-500 whitespace-nowrap">สถานะ</th>
-                <th className="pb-4 pl-4 pr-8 text-right text-slate-500 whitespace-nowrap">จัดการ</th>
+                <th className="pb-4 px-4 text-center text-slate-500">สถานะ</th>
+                <th className="pb-4 px-4 text-right text-slate-500 w-48">จัดการ</th>
               </tr>
             </thead>
             <tbody className="text-sm text-slate-700 divide-y divide-slate-50">
@@ -318,7 +318,7 @@ export default function AdminBilling() {
                     </div>
                   </td>
 
-                  <td className="py-5 pl-4 pr-8 text-right">
+                  <td className="py-5 px-4 text-right">
                     {editingRoom === room.id ? (
                       <button 
                         onClick={() => handleSave(room.id)}
