@@ -31,6 +31,31 @@ export default function AdminBilling() {
     return total;
   };
 
+  const getNextDueDate = (moveInDate?: string, isPaid?: boolean) => {
+    const today = new Date();
+    let month = today.getMonth();
+    let year = today.getFullYear();
+    
+    if (isPaid) {
+      month += 1;
+      if (month > 11) {
+        month = 0;
+        year += 1;
+      }
+    }
+    
+    let day = 5; 
+    if (moveInDate) {
+      const moveIn = new Date(moveInDate);
+      if (!isNaN(moveIn.getTime())) {
+        day = moveIn.getDate();
+      }
+    }
+    
+    const nextDate = new Date(year, month, day);
+    return nextDate.toLocaleDateString('th-TH', { year: '2-digit', month: 'short', day: 'numeric' });
+  };
+
   const handleEdit = (room: Room) => {
     setEditingRoom(room.id);
     setEditValues({
@@ -133,7 +158,7 @@ export default function AdminBilling() {
             </tbody>
           </table>
           <div class="footer">
-            <p>กรุณาชำระเงินภายในวันที่ 5 ของเดือน</p>
+            <p>กรุณาชำระเงินภายในวันที่ ${getNextDueDate(room.moveInDate, false)}</p>
             <p>ขอขอบคุณที่ใช้บริการ Modern Stay</p>
           </div>
           <script>
@@ -258,17 +283,22 @@ export default function AdminBilling() {
                   </td>
 
                   <td className="py-5 px-4 text-center">
-                    <button 
-                      onClick={() => togglePaid(room.id, !!room.isPaid)}
-                      className={cn(
-                        "px-4 py-1.5 text-xs font-bold rounded-full transition-all shadow-sm",
-                        room.isPaid 
-                          ? "bg-emerald-100/80 text-emerald-700 hover:bg-emerald-200 border border-emerald-200" 
-                          : "bg-rose-100 text-rose-700 hover:bg-rose-200 border border-rose-200"
-                      )}
-                    >
-                      {room.isPaid ? 'ชำระแล้ว' : 'ค้างชำระ'}
-                    </button>
+                    <div className="flex flex-col items-center gap-1.5">
+                      <button 
+                        onClick={() => togglePaid(room.id, !!room.isPaid)}
+                        className={cn(
+                          "px-4 py-1.5 text-xs font-bold rounded-full transition-all shadow-sm w-full max-w-[100px]",
+                          room.isPaid 
+                            ? "bg-emerald-100/80 text-emerald-700 hover:bg-emerald-200 border border-emerald-200" 
+                            : "bg-rose-100 text-rose-700 hover:bg-rose-200 border border-rose-200"
+                        )}
+                      >
+                        {room.isPaid ? 'ชำระแล้ว' : 'ค้างชำระ'}
+                      </button>
+                      <span className="text-[10px] text-slate-500 font-medium bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+                        {room.isPaid ? 'กำหนดรอบหน้า' : 'ครบกำหนด'} {getNextDueDate(room.moveInDate, room.isPaid)}
+                      </span>
+                    </div>
                   </td>
 
                   <td className="py-5 px-4 text-right">
