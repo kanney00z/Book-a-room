@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useData } from '../lib/DataContext';
 import { supabase } from '../lib/supabase';
 import { Room, RoomStatus } from '../types';
-import { Search, Filter, Edit, Eye, User, Plus, X, Save, Image as ImageIcon, Loader2, Trash2, LogOut, Settings, LayoutGrid, Building } from 'lucide-react';
+import { Search, Filter, Edit, Eye, User, Plus, X, Save, Image as ImageIcon, Loader2, Trash2, LogOut, Settings, LayoutGrid, Building, Check } from 'lucide-react';
 import { cn, getRoomRent } from '../lib/utils';
 import * as motion from 'motion/react-client';
 import FloorPlanView from '../components/FloorPlanView';

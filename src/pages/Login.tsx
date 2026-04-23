@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as motion from 'motion/react-client';
 import { Lock, User, KeyRound, ArrowRight, ShieldCheck } from 'lucide-react';

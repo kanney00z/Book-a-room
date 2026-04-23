@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useData } from '../lib/DataContext';
 import { Room } from '../types';
 import { Search, Home, Building, ShieldCheck, Phone, ChevronRight, X, Users, Wifi, Wind, CheckCircle2, XCircle } from 'lucide-react';
