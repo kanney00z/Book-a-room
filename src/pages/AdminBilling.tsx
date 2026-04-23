@@ -204,7 +204,7 @@ export default function AdminBilling() {
 
       <div className="bg-white rounded-[1.5rem] border border-slate-100 p-2 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex-1 flex flex-col overflow-hidden">
         <div className="overflow-x-auto flex-1 custom-scrollbar pb-4 pr-2">
-          <table className="w-full text-left border-collapse min-w-[1050px]">
+          <table className="w-full text-left border-collapse min-w-max">
             <thead className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b-2 border-slate-100">
               <tr>
                 <th className="pb-4 px-4 text-slate-500 w-24">ห้องพัก</th>
