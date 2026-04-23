@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useData } from '../lib/DataContext';
 import { Room } from '../types';
-import { Search, Home, Building, ShieldCheck, Phone, ChevronRight, X, Users } from 'lucide-react';
+import { Search, Home, Building, ShieldCheck, Phone, ChevronRight, X, Users, Wifi, Wind } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn, getRoomRent } from '../lib/utils';
 import * as motion from 'motion/react-client';
@@ -222,13 +222,18 @@ export default function PublicBooking() {
                    </div>
                  </div>
 
-                 <div className="flex gap-4 mb-8 text-sm font-medium text-slate-600 bg-slate-50 p-3 rounded-2xl">
-                   <div className="flex items-center gap-2 flex-1 justify-center">
+                 <div className="grid grid-cols-2 gap-y-3 gap-x-2 mb-8 text-sm font-medium text-slate-600 bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
+                   <div className="flex items-center gap-2">
                      <Building className="w-4 h-4 text-indigo-500" /> 30 ตร.ม.
                    </div>
-                   <div className="w-px h-5 bg-slate-200"></div>
-                   <div className="flex items-center gap-2 flex-1 justify-center">
+                   <div className="flex items-center gap-2">
                      <ShieldCheck className="w-4 h-4 text-emerald-500" /> คีย์การ์ด
+                   </div>
+                   <div className="flex items-center gap-2">
+                     <Wifi className="w-4 h-4 text-sky-500" /> ฟรี WiFi
+                   </div>
+                   <div className="flex items-center gap-2">
+                     <Wind className="w-4 h-4 text-cyan-500" /> แอร์เย็นฉ่ำ
                    </div>
                  </div>
 
