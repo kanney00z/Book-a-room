@@ -34,27 +34,35 @@ export default function AdminBilling() {
 
   const getNextDueDate = (moveInDate?: string, isPaid?: boolean) => {
     const today = new Date();
-    let month = today.getMonth();
-    let year = today.getFullYear();
     
-    if (isPaid) {
-      month += 1;
-      if (month > 11) {
-        month = 0;
-        year += 1;
-      }
-    }
-    
-    let day = 5; 
+    let dueDay = 5; 
     if (moveInDate) {
       const moveIn = new Date(moveInDate);
       if (!isNaN(moveIn.getTime())) {
-        day = moveIn.getDate();
+        dueDay = moveIn.getDate();
       }
     }
     
-    const nextDate = new Date(year, month, day);
-    return nextDate.toLocaleDateString('th-TH', { year: '2-digit', month: 'short', day: 'numeric' });
+    // Find the closest due date (last month, this month, or next month)
+    const lastMonthDue = new Date(today.getFullYear(), today.getMonth() - 1, dueDay);
+    const thisMonthDue = new Date(today.getFullYear(), today.getMonth(), dueDay);
+    const nextMonthDue = new Date(today.getFullYear(), today.getMonth() + 1, dueDay);
+    
+    const diffLast = Math.abs(today.getTime() - lastMonthDue.getTime());
+    const diffThis = Math.abs(today.getTime() - thisMonthDue.getTime());
+    const diffNext = Math.abs(today.getTime() - nextMonthDue.getTime());
+    
+    let closestDue = thisMonthDue;
+    if (diffLast < diffThis) closestDue = lastMonthDue;
+    if (diffNext < diffThis && diffNext < diffLast) closestDue = nextMonthDue;
+    
+    // If paid, the next due date is 1 month after the closest due date
+    let targetDate = new Date(closestDue);
+    if (isPaid) {
+      targetDate.setMonth(targetDate.getMonth() + 1);
+    }
+    
+    return targetDate.toLocaleDateString('th-TH', { year: '2-digit', month: 'short', day: 'numeric' });
   };
 
   const handleEdit = (room: Room) => {
