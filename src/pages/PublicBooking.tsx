@@ -20,6 +20,7 @@ export default function PublicBooking() {
     guestCount: 1
   });
   const [bookingStep, setBookingStep] = useState<1 | 2 | 3>(1);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   // Tenant Bill Search State
   const [showBillSearch, setShowBillSearch] = useState(false);
@@ -86,7 +87,7 @@ export default function PublicBooking() {
       setShowModal(null);
       setBookingStep(1);
       setFormData({ applicantName: '', applicantPhone: '', bookingType: 'monthly', requestedMoveInDate: '', requestedMoveOutDate: '', guestCount: 1 });
-      alert('ส่งคำขอจองห้องสำเร็จ! เจ้าหน้าที่จะติดต่อกลับ');
+      setShowSuccess(true);
     }
   };
 
@@ -338,25 +339,31 @@ export default function PublicBooking() {
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">รูปแบบการเข้าพัก</label>
-                    <div className="grid grid-cols-2 gap-3 p-1.5 bg-slate-100/80 rounded-[1.25rem]">
-                      <button
-                        type="button"
-                        onClick={() => setFormData({...formData, bookingType: 'monthly'})}
-                        className={cn("py-2.5 text-sm font-bold rounded-xl transition-all duration-300", formData.bookingType === 'monthly' ? "bg-white shadow-sm text-indigo-700" : "text-slate-500 hover:text-slate-700")}
-                      >
+                    {showModal.monthlyRent > 0 && showModal.dailyRent && showModal.dailyRent > 0 ? (
+                      <div className="grid grid-cols-2 gap-3 p-1.5 bg-slate-100/80 rounded-[1.25rem]">
+                        <button
+                          type="button"
+                          onClick={() => setFormData({...formData, bookingType: 'monthly'})}
+                          className={cn("py-2.5 text-sm font-bold rounded-xl transition-all duration-300", formData.bookingType === 'monthly' ? "bg-white shadow-sm text-indigo-700" : "text-slate-500 hover:text-slate-700")}
+                        >
+                          รายเดือน
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFormData({...formData, bookingType: 'daily'})}
+                          className={cn("py-2.5 text-sm font-bold rounded-xl transition-all duration-300", formData.bookingType === 'daily' ? "bg-white shadow-sm text-indigo-700" : "text-slate-500 hover:text-slate-700")}
+                        >
+                          รายวัน
+                        </button>
+                      </div>
+                    ) : showModal.monthlyRent > 0 ? (
+                      <div className="w-full py-3 bg-indigo-50 border border-indigo-100 text-indigo-700 font-bold rounded-[1.25rem] text-center shadow-sm">
                         รายเดือน
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setFormData({...formData, bookingType: 'daily'})}
-                        className={cn("py-2.5 text-sm font-bold rounded-xl transition-all duration-300", formData.bookingType === 'daily' ? "bg-white shadow-sm text-indigo-700" : "text-slate-500 hover:text-slate-700")}
-                        disabled={!showModal.dailyRent || showModal.dailyRent <= 0}
-                      >
+                      </div>
+                    ) : (
+                      <div className="w-full py-3 bg-indigo-50 border border-indigo-100 text-indigo-700 font-bold rounded-[1.25rem] text-center shadow-sm">
                         รายวัน
-                      </button>
-                    </div>
-                    {(!showModal.dailyRent || showModal.dailyRent <= 0) && formData.bookingType === 'monthly' && (
-                      <p className="text-[11px] font-semibold text-rose-500 mt-2">* ห้องนี้รองรับเฉพาะการเช่ารายเดือนเท่านั้น</p>
+                      </div>
                     )}
                   </div>
 
@@ -495,6 +502,42 @@ export default function PublicBooking() {
           </motion.div>
         </div>
       )}
+
+      {/* Success Modal */}
+      {showSuccess && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="bg-white rounded-[2rem] border border-slate-200 p-8 max-w-sm w-full shadow-2xl text-center relative overflow-hidden"
+          >
+            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
+            
+            <motion.div 
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
+              className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner"
+            >
+              <CheckCircle2 className="w-10 h-10" />
+            </motion.div>
+            
+            <h3 className="text-2xl font-display font-bold text-slate-800 mb-2">ส่งคำขอสำเร็จ!</h3>
+            <p className="text-slate-500 mb-8 leading-relaxed">
+              เราได้รับข้อมูลการจองห้องพักของคุณเรียบร้อยแล้ว เจ้าหน้าที่จะทำการติดต่อกลับโดยเร็วที่สุด
+            </p>
+            
+            <button 
+              onClick={() => setShowSuccess(false)}
+              className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition-all shadow-md"
+            >
+              กลับสู่หน้าหลัก
+            </button>
+          </motion.div>
+        </div>
+      )}
+
+
 
       {/* Bill Search Modal */}
       {showBillSearch && !tenantBill && (
