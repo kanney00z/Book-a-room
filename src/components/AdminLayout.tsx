@@ -4,10 +4,10 @@ import { cn } from '../lib/utils';
 
 export default function AdminLayout({ onLogout }: { onLogout?: () => void }) {
   const navItems = [
-    { name: 'ภาพรวมระบบ (Dashboard)', path: '/admin/dashboard', icon: LayoutDashboard },
-    { name: 'จัดการห้องพัก (Rooms)', path: '/admin/rooms', icon: Key },
-    { name: 'ระบบแจ้งซ่อม (Maintenance)', path: '/admin/maintenance', icon: Wrench },
-    { name: 'จัดการบิล (Billing)', path: '/admin/billing', icon: FileText },
+    { name: 'ภาพรวมระบบ (Dashboard)', shortName: 'ภาพรวม', path: '/admin/dashboard', icon: LayoutDashboard },
+    { name: 'จัดการห้องพัก (Rooms)', shortName: 'ห้องพัก', path: '/admin/rooms', icon: Key },
+    { name: 'ระบบแจ้งซ่อม (Maintenance)', shortName: 'แจ้งซ่อม', path: '/admin/maintenance', icon: Wrench },
+    { name: 'จัดการบิล (Billing)', shortName: 'บิลเช่า', path: '/admin/billing', icon: FileText },
   ];
 
   return (
@@ -89,11 +89,43 @@ export default function AdminLayout({ onLogout }: { onLogout?: () => void }) {
 
         {/* Main Content */}
         <main className="col-span-12 md:col-span-9 h-full overflow-hidden">
-          <div className="h-full overflow-y-auto rounded-3xl pb-10 custom-scrollbar pr-2">
+          <div className="h-full overflow-y-auto rounded-3xl pb-24 md:pb-10 custom-scrollbar pr-2">
             <Outlet />
           </div>
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-200/50 pb-safe pt-2 px-6 flex justify-between items-center z-50 shadow-[0_-8px_30px_rgb(0,0,0,0.04)] pb-4">
+        {navItems.map(item => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            className={({ isActive }) =>
+              cn(
+                'flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-300',
+                isActive 
+                  ? 'text-indigo-600' 
+                  : 'text-slate-400 hover:text-slate-600'
+              )
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <div className={cn(
+                  "p-1.5 rounded-xl transition-all duration-300",
+                  isActive ? "bg-indigo-50 text-indigo-600 scale-110" : ""
+                )}>
+                  <item.icon className={cn("w-5 h-5 transition-transform duration-300", isActive ? "stroke-[2.5px]" : "stroke-[2px]")} />
+                </div>
+                <span className={cn("text-[10px] font-medium transition-all duration-300", isActive ? "font-bold" : "")}>
+                  {item.shortName}
+                </span>
+              </>
+            )}
+          </NavLink>
+        ))}
+      </nav>
     </div>
   );
 }
