@@ -188,6 +188,97 @@ export default function AdminBilling() {
     printWindow.document.close();
   };
 
+  const handlePrintAll = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return alert('กรุณาอนุญาต Pop-up เพื่อพิมพ์บิล');
+
+    const totalIncome = occupiedRooms.reduce((sum, room) => sum + calculateTotal(room), 0);
+    const currentDate = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    const tableRows = occupiedRooms.map(room => {
+      const rent = getRoomRent(room);
+      const waterTotal = ((room.currentWaterMeter || 0) - (room.lastWaterMeter || 0)) * WATER_RATE;
+      const electricTotal = ((room.currentElectricMeter || 0) - (room.lastElectricMeter || 0)) * ELECTRIC_RATE;
+      const grandTotal = rent + waterTotal + electricTotal;
+      const status = room.isPaid ? 'ชำระแล้ว' : 'ค้างชำระ';
+      const statusColor = room.isPaid ? 'color: #059669;' : 'color: #e11d48;';
+      
+      return `
+        <tr>
+          <td class="text-center">${room.number}</td>
+          <td>${room.tenantName}</td>
+          <td class="text-right">${rent.toLocaleString()}</td>
+          <td class="text-right">${waterTotal.toLocaleString()}</td>
+          <td class="text-right">${electricTotal.toLocaleString()}</td>
+          <td class="text-right font-bold">${grandTotal.toLocaleString()}</td>
+          <td class="text-center" style="${statusColor} font-weight: bold;">${status}</td>
+        </tr>
+      `;
+    }).join('');
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>สรุปยอดค่าใช้จ่ายประจำเดือน</title>
+          <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+          <style>
+            body { font-family: 'Sarabun', sans-serif; padding: 40px; color: #333; }
+            .header { text-align: center; margin-bottom: 40px; }
+            .header h1 { margin: 0; color: #1e40af; font-size: 28px; }
+            .header p { margin: 5px 0; color: #666; font-size: 16px; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 14px; }
+            th, td { padding: 12px; border: 1px solid #e2e8f0; }
+            th { background-color: #f8fafc; font-weight: bold; text-align: center; color: #475569; }
+            .text-right { text-align: right; }
+            .text-center { text-align: center; }
+            .font-bold { font-weight: bold; }
+            .summary { background: #f1f5f9; padding: 20px; border-radius: 8px; font-size: 18px; text-align: right; font-weight: bold; color: #0f172a; border: 1px solid #e2e8f0; }
+            .print-btn { padding: 12px 24px; background: #4f46e5; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; font-family: 'Sarabun', sans-serif; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2); transition: background 0.2s; }
+            .print-btn:hover { background: #4338ca; }
+            @media print {
+              body { padding: 0; }
+              .print-btn { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>MODERN STAY</h1>
+            <p>สรุปยอดค่าใช้จ่ายผู้เช่าทั้งหมด</p>
+            <p>ประจำวันที่ ${currentDate}</p>
+          </div>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>ห้อง</th>
+                <th>ผู้เช่า</th>
+                <th>ค่าเช่า (฿)</th>
+                <th>ค่าน้ำ (฿)</th>
+                <th>ค่าไฟ (฿)</th>
+                <th>ยอดรวม (฿)</th>
+                <th>สถานะ</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+          
+          <div class="summary">
+            คาดการณ์ยอดเรียกเก็บรวมทั้งหมด: ${totalIncome.toLocaleString()} บาท
+          </div>
+          
+          <div style="text-align: center; margin-top: 40px;">
+            <button class="print-btn" onclick="window.print()">พิมพ์เอกสารสรุปยอด</button>
+          </div>
+        </body>
+      </html>
+    `);
+    
+    printWindow.document.close();
+  };
+
   const togglePaid = (roomId: string, currentStatus: boolean) => {
     updateRoom(roomId, { isPaid: !currentStatus });
   };
@@ -204,7 +295,10 @@ export default function AdminBilling() {
           <p className="text-slate-500 mt-2 font-medium">บันทึกมิเตอร์น้ำ-ไฟ และสรุปยอดค่าใช้จ่ายประจำเดือนสำหรับผู้เช่าทั้งหมด</p>
         </div>
         <div className="ml-auto">
-          <button className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white font-semibold rounded-xl hover:bg-indigo-600 transition-all duration-300 shadow-md hover:shadow-indigo-600/20">
+          <button 
+            onClick={handlePrintAll}
+            className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white font-semibold rounded-xl hover:bg-indigo-600 transition-all duration-300 shadow-md hover:shadow-indigo-600/20"
+          >
             <FileText className="w-4 h-4" /> พิมพ์สรุปยอดทั้งหมด
           </button>
         </div>
