@@ -215,7 +215,14 @@ export default function AdminBilling() {
                       <span className="text-base font-bold leading-none">{room.number}</span>
                     </div>
                   </td>
-                  <td className="py-5 px-4 font-semibold text-slate-800">{room.tenantName}</td>
+                  <td className="py-5 px-4">
+                    <div className="font-semibold text-slate-800">{room.tenantName}</div>
+                    {room.moveInDate && (
+                      <div className="text-[11px] text-emerald-600 font-medium mt-0.5">
+                        เข้าพัก: {new Date(room.moveInDate).toLocaleDateString('th-TH', { year: '2-digit', month: 'short', day: 'numeric' })}
+                      </div>
+                    )}
+                  </td>
                   <td className="py-5 px-4">
                     {editingRoom === room.id ? (
                       <input 
