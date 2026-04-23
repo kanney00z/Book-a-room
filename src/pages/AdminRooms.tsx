@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useData } from '../lib/DataContext';
 import { supabase } from '../lib/supabase';
 import { Room, RoomStatus } from '../types';
