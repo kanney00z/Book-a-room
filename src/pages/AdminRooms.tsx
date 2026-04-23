@@ -265,6 +265,14 @@ export default function AdminRooms() {
                       ฿{getRoomRent(room).toLocaleString()}
                     </span>
                   </div>
+                  {room.moveInDate && (
+                    <div className="text-xs text-slate-500 flex justify-between px-2 pt-1">
+                      <span>วันที่เข้าพัก:</span>
+                      <span className="font-semibold text-emerald-600">
+                        {new Date(room.moveInDate).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}
+                      </span>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="h-full flex flex-col justify-center space-y-2 bg-gradient-to-br from-slate-50 to-white border border-slate-100 p-5 rounded-xl shadow-inner">
@@ -305,7 +313,7 @@ export default function AdminRooms() {
       )}
 
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -427,7 +435,7 @@ export default function AdminRooms() {
       )}
 
       {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -595,7 +603,7 @@ export default function AdminRooms() {
       )}
 
       {showBillModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -664,7 +672,7 @@ export default function AdminRooms() {
 
       {/* Room Types Modal */}
       {showTypesModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
