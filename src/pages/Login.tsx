@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import * as motion from 'motion/react-client';
 import { Lock, User, KeyRound, ArrowRight, ShieldCheck } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useData } from '../lib/DataContext';
 
 export default function Login({ onLogin }: { onLogin: () => void }) {
+  const { settings } = useData();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -48,7 +50,7 @@ export default function Login({ onLogin }: { onLogin: () => void }) {
               <ShieldCheck className="w-8 h-8 text-white" />
             </div>
             <h1 className="font-display text-3xl font-bold text-slate-900 tracking-tight">Admin Portal</h1>
-            <p className="text-sm font-medium text-slate-500 mt-2">ลงชื่อเข้าสู่ระบบจัดการ Modern Stay</p>
+            <p className="text-sm font-medium text-slate-500 mt-2">ลงชื่อเข้าสู่ระบบจัดการ {settings.hotelName || 'Modern Stay'}</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">

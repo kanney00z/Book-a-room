@@ -5,6 +5,7 @@ import { supabase } from './supabase';
 interface AppSettings {
   promptpayNumber: string;
   promptpayName: string;
+  hotelName: string;
 }
 
 interface DataContextType {
@@ -45,7 +46,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   const [settings, setSettings] = useState<AppSettings>(() => {
     const saved = localStorage.getItem('adminSettings');
-    return saved ? JSON.parse(saved) : { promptpayNumber: '0812345678', promptpayName: 'เจ้าของหอพัก' };
+    return saved ? JSON.parse(saved) : { promptpayNumber: '0812345678', promptpayName: 'เจ้าของหอพัก', hotelName: 'Modern Stay' };
   });
 
   const updateSettings = (newSettings: AppSettings) => {

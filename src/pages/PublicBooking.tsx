@@ -7,7 +7,7 @@ import { cn, getRoomRent } from '../lib/utils';
 import * as motion from 'motion/react-client';
 
 export default function PublicBooking() {
-  const { rooms, addBooking } = useData();
+  const { rooms, addBooking, settings } = useData();
   const [showModal, setShowModal] = useState<Room | null>(null);
   
   // Booking Form State
@@ -120,9 +120,9 @@ export default function PublicBooking() {
       <nav className="flex items-center justify-between px-8 md:px-16 py-6 bg-transparent absolute top-0 w-full z-10">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 shadow-lg shadow-indigo-600/20 font-bold text-white flex items-center justify-center font-display text-xl">
-            M
+            {(settings.hotelName || 'Modern Stay').charAt(0)}
           </div>
-          <span className="font-display font-bold text-xl text-slate-900 tracking-tight">Modern Stay</span>
+          <span className="font-display font-bold text-xl text-slate-900 tracking-tight">{settings.hotelName || 'Modern Stay'}</span>
         </div>
         <button 
           onClick={() => setShowBillSearch(true)}
@@ -671,7 +671,7 @@ export default function PublicBooking() {
       )}
       
       <footer className="py-8 text-center text-slate-500 text-sm mt-12 border-t border-slate-200">
-        &copy; {new Date().getFullYear()} Modern Stay Management.
+        &copy; {new Date().getFullYear()} {settings.hotelName || 'Modern Stay'} Management.
       </footer>
     </div>
   );

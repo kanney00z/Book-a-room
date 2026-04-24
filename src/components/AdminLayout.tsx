@@ -1,8 +1,10 @@
 import { Outlet, NavLink } from 'react-router-dom';
 import { LayoutDashboard, Key, FileText, Settings, Globe, LogOut, Wrench } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useData } from '../lib/DataContext';
 
 export default function AdminLayout({ onLogout }: { onLogout?: () => void }) {
+  const { settings } = useData();
   const navItems = [
     { name: 'ภาพรวมระบบ (Dashboard)', shortName: 'ภาพรวม', path: '/admin/dashboard', icon: LayoutDashboard },
     { name: 'จัดการห้องพัก (Rooms)', shortName: 'ห้องพัก', path: '/admin/rooms', icon: Key },
@@ -21,10 +23,10 @@ export default function AdminLayout({ onLogout }: { onLogout?: () => void }) {
         <header className="col-span-12 flex items-center justify-between glass-card rounded-[1.5rem] px-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] py-4">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-600/20">
-              <span className="font-display font-bold text-white text-xl">M</span>
+              <span className="font-display font-bold text-white text-xl">{(settings.hotelName || 'Modern Stay').charAt(0).toUpperCase()}</span>
             </div>
             <div>
-              <h1 className="text-xl font-display font-bold text-slate-900 tracking-tight">Modern Stay</h1>
+              <h1 className="text-xl font-display font-bold text-slate-900 tracking-tight">{settings.hotelName || 'Modern Stay'}</h1>
               <p className="text-xs font-bold text-indigo-600 uppercase tracking-widest mt-0.5">Admin Workspace</p>
             </div>
           </div>

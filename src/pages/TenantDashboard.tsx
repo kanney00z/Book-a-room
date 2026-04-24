@@ -7,7 +7,7 @@ import { cn, getRoomRent } from '../lib/utils';
 
 export default function TenantDashboard() {
   const navigate = useNavigate();
-  const { rooms, maintenanceRequests, addMaintenanceRequest, updateRoom } = useData();
+  const { rooms, maintenanceRequests, addMaintenanceRequest, updateRoom, settings } = useData();
   const [roomId, setRoomId] = useState(localStorage.getItem('tenantRoomId'));
   
   const [isReporting, setIsReporting] = useState(false);
@@ -59,7 +59,7 @@ export default function TenantDashboard() {
             {room.number}
           </div>
           <div>
-            <h1 className="font-display font-bold text-lg leading-tight">Modern Stay</h1>
+            <h1 className="font-display font-bold text-lg leading-tight">{settings.hotelName || 'Modern Stay'}</h1>
             <p className="text-xs text-slate-500 font-medium">ห้อง {room.number} • {room.tenantName}</p>
           </div>
         </div>
@@ -238,18 +238,20 @@ export default function TenantDashboard() {
               <X className="w-5 h-5" />
             </button>
             
-            <div className="flex justify-center mb-4 mt-2">
+            <div className="flex justify-center mb-2 mt-2">
               <div className="bg-[#113566] text-white px-6 py-1.5 rounded-full font-bold text-lg tracking-wide shadow-md">
                 PromptPay
               </div>
             </div>
             
-            <p className="text-sm font-semibold text-slate-500 mb-6">สแกน QR Code เพื่อชำระเงิน</p>
+            <p className="text-sm font-semibold text-slate-500 mb-2">สแกน QR Code เพื่อชำระเงิน</p>
+            <p className="text-md font-bold text-slate-800 mb-1">{settings.promptpayName}</p>
+            <p className="text-sm font-medium text-slate-600 mb-6">{settings.promptpayNumber}</p>
 
             {/* Mock QR Code Image Placeholder */}
             <div className="w-48 h-48 mx-auto bg-white border-8 border-slate-100 rounded-2xl shadow-sm flex items-center justify-center p-2 mb-6">
               <img 
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=promptpay-dummy-${room.id}`} 
+                src={`https://promptpay.io/${settings.promptpayNumber}/${grandTotal}.png`} 
                 alt="PromptPay QR Code"
                 className="w-full h-full object-contain"
               />

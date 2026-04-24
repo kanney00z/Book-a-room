@@ -131,7 +131,7 @@ export default function AdminBilling() {
         </head>
         <body>
           <div class="header">
-            <h1>MODERN STAY</h1>
+            <h1>${settings.hotelName?.toUpperCase() || 'MODERN STAY'}</h1>
             <p>ใบแจ้งหนี้ประจำเดือน (Invoice)</p>
           </div>
           <div class="info">
@@ -180,7 +180,7 @@ export default function AdminBilling() {
           </table>
           <div class="footer">
             <p>กรุณาชำระเงินภายในวันที่ ${getNextDueDate(room.moveInDate, false)}</p>
-            <p>ขอขอบคุณที่ใช้บริการ Modern Stay</p>
+            <p>ขอขอบคุณที่ใช้บริการ ${settings.hotelName || 'Modern Stay'}</p>
           </div>
           <script>
             window.onload = () => { window.print(); window.close(); }
@@ -246,7 +246,7 @@ export default function AdminBilling() {
         </head>
         <body>
           <div class="header">
-            <h1>MODERN STAY</h1>
+            <h1>${settings.hotelName?.toUpperCase() || 'MODERN STAY'}</h1>
             <p>สรุปยอดค่าใช้จ่ายผู้เช่าทั้งหมด</p>
             <p>ประจำวันที่ ${currentDate}</p>
           </div>
@@ -696,15 +696,25 @@ export default function AdminBilling() {
             
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
-                <QrCode className="w-6 h-6" />
+                <Settings className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-slate-800 font-display">ตั้งค่าการรับเงิน (PromptPay)</h3>
-                <p className="text-sm text-slate-500 font-medium">ข้อมูลนี้จะแสดงให้ผู้เช่าเห็นเมื่อสแกนจ่ายค่าเช่า</p>
+                <h3 className="text-xl font-bold text-slate-800 font-display">ตั้งค่าระบบหอพัก</h3>
+                <p className="text-sm text-slate-500 font-medium">จัดการชื่อหอพัก และข้อมูลรับชำระเงิน</p>
               </div>
             </div>
 
             <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อหอพัก / โรงแรม</label>
+                <input 
+                  type="text" 
+                  value={tempSettings.hotelName || ''}
+                  onChange={e => setTempSettings({...tempSettings, hotelName: e.target.value})}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium"
+                  placeholder="เช่น Modern Stay"
+                />
+              </div>
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อบัญชีรับเงิน (ชื่อ-นามสกุล / ชื่อบริษัท)</label>
                 <input 
