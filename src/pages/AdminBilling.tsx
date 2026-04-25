@@ -120,7 +120,7 @@ export default function AdminBilling() {
     text += `📅 กำหนดชำระภายใน: ${dueDate}\n`;
     
     text += `\nล็อกอินเพื่อดูบิลและส่งสลิปได้ที่นี่:\n`;
-    text += `${window.location.origin}/tenant`;
+    text += `${window.location.origin}/tenant/login`;
     
     const encodedText = encodeURIComponent(text);
     window.open(`https://line.me/R/msg/text/?${encodedText}`, '_blank');

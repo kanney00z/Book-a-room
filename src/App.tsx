@@ -59,6 +59,9 @@ export default function App() {
             <Route path="maintenance" element={<AdminMaintenance />} />
             <Route path="expenses" element={<AdminExpenses />} />
           </Route>
+          
+          <Route path="/tenant" element={<Navigate to="/tenant/login" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
     </DataProvider>
