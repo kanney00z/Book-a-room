@@ -316,8 +316,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const deleteMaintenanceRequest = async (id: string) => {
     if (!isConfigured) return;
+    const backup = [...maintenanceRequests];
     setMaintenanceRequests(prev => prev.filter(req => req.id !== id));
-    await supabase.from('maintenance_requests').delete().eq('id', id);
+    const { error } = await supabase.from('maintenance_requests').delete().eq('id', id);
+    if (error) {
+      console.error("Error deleting maintenance request:", error);
+      alert('ไม่สามารถลบรายการได้ กรุณาลองใหม่อีกครั้ง');
+      setMaintenanceRequests(backup);
+    }
   };
 
   const addExpense = async (expense: Omit<Expense, 'id' | 'created_at'>) => {
