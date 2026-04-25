@@ -15,6 +15,7 @@ export default function AdminBilling() {
   const [editingRoom, setEditingRoom] = useState<string | null>(null);
   const [confirmRollover, setConfirmRollover] = useState<string | null>(null);
   const [showSlipModal, setShowSlipModal] = useState<Room | null>(null);
+  const [isImageLoading, setIsImageLoading] = useState(true);
   const [editValues, setEditValues] = useState<{
     currentWaterMeter?: number;
     currentElectricMeter?: number;
@@ -607,7 +608,10 @@ export default function AdminBilling() {
                     <div className="flex flex-col items-center gap-1.5">
                       {(!room.isPaid && room.paymentSlipUrl) ? (
                         <button 
-                          onClick={() => setShowSlipModal(room)}
+                          onClick={() => {
+                            setIsImageLoading(true);
+                            setShowSlipModal(room);
+                          }}
                           className="px-4 py-1.5 text-xs font-bold rounded-full transition-all shadow-sm w-full max-w-[100px] bg-amber-100 text-amber-700 hover:bg-amber-200 border border-amber-200 flex items-center justify-center gap-1"
                         >
                           <Receipt className="w-3.5 h-3.5" /> ตรวจสลิป
@@ -802,13 +806,25 @@ export default function AdminBilling() {
             <h3 className="text-xl font-bold text-slate-800 font-display mb-1">ตรวจสอบสลิปห้อง {showSlipModal.number}</h3>
             <p className="text-sm font-medium text-slate-500 mb-6">ยอดชำระที่ต้องได้รับ: <span className="text-blue-600 font-bold tracking-wide">฿{calculateTotal(showSlipModal).toLocaleString()}</span></p>
 
-            <div className="bg-slate-50 rounded-xl overflow-hidden border border-slate-200 mb-6 flex justify-center">
+            <div className="bg-slate-50 rounded-xl overflow-hidden border border-slate-200 mb-6 flex justify-center relative min-h-[200px]">
               {showSlipModal.paymentSlipUrl ? (
-                <img 
-                  src={showSlipModal.paymentSlipUrl} 
-                  alt="Payment Slip" 
-                  className="max-h-96 object-contain"
-                />
+                <>
+                  {isImageLoading && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/80 backdrop-blur-sm z-10">
+                      <div className="w-8 h-8 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin mb-2"></div>
+                      <p className="text-xs font-bold text-slate-500 animate-pulse">กำลังโหลดรูปภาพ...</p>
+                    </div>
+                  )}
+                  <img 
+                    src={showSlipModal.paymentSlipUrl} 
+                    alt="Payment Slip" 
+                    onLoad={() => setIsImageLoading(false)}
+                    className={cn(
+                      "max-h-96 object-contain transition-opacity duration-300",
+                      isImageLoading ? "opacity-0" : "opacity-100"
+                    )}
+                  />
+                </>
               ) : (
                 <div className="p-8 text-slate-400 font-medium">ไม่พบรูปภาพสลิป</div>
               )}

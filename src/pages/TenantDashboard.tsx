@@ -4,6 +4,7 @@ import { useData } from '../lib/DataContext';
 import { supabase } from '../lib/supabase';
 import { LogOut, Receipt, QrCode, Wrench, AlertCircle, CheckCircle, Clock, X, Copy } from 'lucide-react';
 import * as motion from 'motion/react-client';
+import imageCompression from 'browser-image-compression';
 import { cn, getRoomRent } from '../lib/utils';
 
 export default function TenantDashboard() {
@@ -302,38 +303,55 @@ export default function TenantDashboard() {
                   const fileExt = file.name.split('.').pop();
                   const fileName = `slip-${room.number}-${Date.now()}.${fileExt}`;
                   
-                  // @ts-ignore
-                  const { error: uploadError } = await supabase.storage
-                    .from('room-images')
-                    .upload(fileName, file);
+                  try {
+                    const options = {
+                      maxSizeMB: 0.5,
+                      maxWidthOrHeight: 1200,
+                      useWebWorker: true
+                    };
+                    const compressedFile = await imageCompression(file, options);
+                    
+                    // @ts-ignore
+                    const { error: uploadError } = await supabase.storage
+                      .from('room-images')
+                      .upload(fileName, compressedFile);
 
-                  if (uploadError) {
-                    console.error(uploadError);
-                    setToastMessage({
-                      title: 'ข้อผิดพลาด',
-                      message: 'อัปโหลดสลิปไม่สำเร็จ กรุณาลองใหม่',
-                      type: 'error'
-                    });
+                    if (uploadError) {
+                      console.error(uploadError);
+                      setToastMessage({
+                        title: 'ข้อผิดพลาด',
+                        message: 'อัปโหลดสลิปไม่สำเร็จ กรุณาลองใหม่',
+                        type: 'error'
+                      });
+                      // @ts-ignore
+                      setIsUploading(false);
+                      return;
+                    }
+
+                    // @ts-ignore
+                    const { data } = supabase.storage.from('room-images').getPublicUrl(fileName);
+                    
+                    if (room.id) {
+                      updateRoom(room.id, { paymentSlipUrl: data.publicUrl });
+                    }
+                    
                     // @ts-ignore
                     setIsUploading(false);
-                    return;
+                    setShowPaymentModal(false);
+                    setToastMessage({
+                      title: 'อัปโหลดสำเร็จ',
+                      message: 'อัปโหลดหลักฐานการโอนเงินเรียบร้อยแล้ว กรุณารอแอดมินตรวจสอบ',
+                      type: 'success'
+                    });
+                  } catch (error) {
+                    console.error('Error compressing or uploading image:', error);
+                    setIsUploading(false);
+                    setToastMessage({
+                      title: 'ข้อผิดพลาด',
+                      message: 'เกิดข้อผิดพลาดในการประมวลผลรูปภาพ',
+                      type: 'error'
+                    });
                   }
-
-                  // @ts-ignore
-                  const { data } = supabase.storage.from('room-images').getPublicUrl(fileName);
-                  
-                  if (room.id) {
-                    updateRoom(room.id, { paymentSlipUrl: data.publicUrl });
-                  }
-                  
-                  // @ts-ignore
-                  setIsUploading(false);
-                  setShowPaymentModal(false);
-                  setToastMessage({
-                    title: 'อัปโหลดสำเร็จ',
-                    message: 'อัปโหลดหลักฐานการโอนเงินเรียบร้อยแล้ว กรุณารอแอดมินตรวจสอบ',
-                    type: 'success'
-                  });
                 }} disabled={isUploading} />
               </label>
             </div>
