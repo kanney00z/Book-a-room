@@ -28,6 +28,9 @@ export interface Room {
   customRent?: number;
   otherCharges?: number;
   isPaid?: boolean;
+  // Position for Map View
+  posX?: number;
+  posY?: number;
 }
 
 export interface BookingRequest {

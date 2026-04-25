@@ -200,21 +200,34 @@ export default function AdminBilling() {
 
     const tableRows = occupiedRooms.map(room => {
       const rent = getRoomRent(room);
-      const waterTotal = ((room.currentWaterMeter || 0) - (room.lastWaterMeter || 0)) * WATER_RATE;
-      const electricTotal = ((room.currentElectricMeter || 0) - (room.lastElectricMeter || 0)) * ELECTRIC_RATE;
+      const waterTotal = room.activeBookingType === 'daily' ? 0 : ((room.currentWaterMeter || 0) - (room.lastWaterMeter || 0)) * WATER_RATE;
+      const electricTotal = room.activeBookingType === 'daily' ? 0 : ((room.currentElectricMeter || 0) - (room.lastElectricMeter || 0)) * ELECTRIC_RATE;
       const grandTotal = rent + waterTotal + electricTotal;
       const status = room.isPaid ? 'ชำระแล้ว' : 'ค้างชำระ';
       const statusColor = room.isPaid ? 'color: #059669;' : 'color: #e11d48;';
       
+      const bookingTypeStr = room.activeBookingType === 'daily' ? 'รายวัน' : 'รายเดือน';
+      const moveInStr = room.moveInDate ? new Date(room.moveInDate).toLocaleDateString('th-TH', { year: '2-digit', month: 'short', day: 'numeric' }) : '-';
+      const moveOutStr = room.moveOutDate ? new Date(room.moveOutDate).toLocaleDateString('th-TH', { year: '2-digit', month: 'short', day: 'numeric' }) : '';
+      const dateStr = room.activeBookingType === 'daily' ? `${moveInStr} - ${moveOutStr}` : `เข้าพัก: ${moveInStr}`;
+      
       return `
         <tr>
           <td class="text-center">${room.number}</td>
-          <td>${room.tenantName}</td>
+          <td>
+            <div style="font-weight: 600;">${room.tenantName || '-'}</div>
+            <div style="font-size: 12px; color: #64748b; margin-top: 4px;">
+              <span style="background: #e0e7ff; color: #4338ca; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-right: 4px; display: inline-block;">${bookingTypeStr}</span>
+              <span>${dateStr}</span>
+            </div>
+          </td>
           <td class="text-right">${rent.toLocaleString()}</td>
-          <td class="text-right">${waterTotal.toLocaleString()}</td>
-          <td class="text-right">${electricTotal.toLocaleString()}</td>
+          <td class="text-right">${waterTotal === 0 ? '-' : waterTotal.toLocaleString()}</td>
+          <td class="text-right">${electricTotal === 0 ? '-' : electricTotal.toLocaleString()}</td>
           <td class="text-right font-bold">${grandTotal.toLocaleString()}</td>
-          <td class="text-center" style="${statusColor} font-weight: bold;">${status}</td>
+          <td class="text-center" style="${statusColor} font-weight: bold;">
+            <span style="background: ${room.isPaid ? '#d1fae5' : '#ffe4e6'}; padding: 4px 10px; border-radius: 12px;">${status}</span>
+          </td>
         </tr>
       `;
     }).join('');

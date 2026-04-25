@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { useData } from '../lib/DataContext';
 import { supabase } from '../lib/supabase';
 import { Room, RoomStatus } from '../types';
-import { Search, Filter, Edit, Eye, User, Plus, X, Save, Image as ImageIcon, Loader2, Trash2, LogOut, Settings, LayoutGrid, Building, Check } from 'lucide-react';
-import { cn, getRoomRent } from '../lib/utils';
+import { Search, Filter, Edit, Eye, User, Plus, X, Save, Image as ImageIcon, Loader2, Trash2, LogOut, Settings, LayoutGrid, Building, Check, FileText, Printer } from 'lucide-react';
+import { cn, getRoomRent, printContract } from '../lib/utils';
 import * as motion from 'motion/react-client';
 import FloorPlanView from '../components/FloorPlanView';
 
 export default function AdminRooms() {
-  const { rooms, roomTypes, addRoom, updateRoom, deleteRoom, addRoomType, deleteRoomType, sendLineNotification } = useData();
+  const { rooms, roomTypes, addRoom, updateRoom, deleteRoom, addRoomType, deleteRoomType, sendLineNotification, settings } = useData();
   const [filter, setFilter] = useState<'all' | 'vacant' | 'occupied'>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'floorplan'>('grid');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -162,6 +162,10 @@ export default function AdminRooms() {
     setShowEditModal(null);
   };
 
+  const handlePrintContract = (room: Room) => {
+    printContract(room, settings.hotelName);
+  };
+
   const handleCheckout = () => {
     if (!showEditModal) return;
     
@@ -260,7 +264,13 @@ export default function AdminRooms() {
       </div>
 
       {viewMode === 'floorplan' ? (
-        <FloorPlanView rooms={filteredRooms} onRoomClick={handleEditClick} />
+        <FloorPlanView 
+          rooms={filteredRooms} 
+          onRoomClick={handleEditClick} 
+          onRoomMove={(room, x, y) => {
+            updateRoom(room.id, { posX: x, posY: y });
+          }}
+        />
       ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
         {filteredRooms.map((room) => (
@@ -333,25 +343,22 @@ export default function AdminRooms() {
               )}
             </div>
 
-            <div className="flex gap-3">
-              <button 
-                onClick={() => setShowBillModal(room)}
-                disabled={room.status !== 'occupied'}
-                className={cn(
-                  "flex-1 flex justify-center items-center gap-2 py-3 text-xs font-bold rounded-xl transition-all",
-                  room.status === 'occupied' 
-                    ? "bg-slate-900 text-white hover:bg-slate-800 shadow-sm" 
-                    : "bg-slate-50 text-slate-300 cursor-not-allowed border border-slate-100"
-                )}
-              >
-                <Eye className="w-4 h-4" /> ดูบิล
-              </button>
+            <div className="flex gap-2">
               <button 
                 onClick={() => handleEditClick(room)}
-                className="flex-[0.7] flex justify-center items-center gap-2 py-3 bg-indigo-50 text-xs font-bold text-indigo-700 hover:bg-indigo-100 rounded-xl transition-all border border-indigo-100/50"
+                className="flex-1 flex justify-center items-center gap-2 py-3 bg-indigo-50 text-xs font-bold text-indigo-700 hover:bg-indigo-100 rounded-xl transition-all border border-indigo-100/50"
               >
-                <Edit className="w-4 h-4" /> แก้ไข
+                <Edit className="w-4 h-4" /> จัดการ
               </button>
+              {room.status === 'occupied' && (
+                <button 
+                  onClick={() => handlePrintContract(room)}
+                  className="flex-[0.5] flex justify-center items-center gap-2 py-3 bg-slate-50 text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 rounded-xl transition-all border border-slate-200"
+                  title="พิมพ์สัญญาเช่า"
+                >
+                  <FileText className="w-4 h-4" /> สัญญา
+                </button>
+              )}
             </div>
           </motion.div>
         ))}

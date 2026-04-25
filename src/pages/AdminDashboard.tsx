@@ -1,9 +1,14 @@
+import { useState } from 'react';
 import { useData } from '../lib/DataContext';
-import { Home, Users, Wallet, AlertCircle, TrendingUp } from 'lucide-react';
+import { Home, Users, Wallet, AlertCircle, TrendingUp, QrCode, X, Copy } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { printContract } from '../lib/utils';
+import { Room, BookingRequest } from '../types';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function AdminDashboard() {
-  const { rooms, bookings, approveBooking, rejectBooking } = useData();
+  const { rooms, bookings, approveBooking, rejectBooking, settings } = useData();
+  const [showQR, setShowQR] = useState(false);
 
   const occupiedRooms = rooms.filter(r => r.status === 'occupied').length;
   const vacantRooms = rooms.filter(r => r.status === 'vacant').length;
@@ -35,6 +40,21 @@ export default function AdminDashboard() {
     { name: 'มีผู้เช่า', value: occupiedRooms, color: '#10b981' }, // Emerald
     { name: 'ซ่อมบำรุง', value: maintenanceRooms, color: '#f59e0b' } // Amber
   ];
+
+  const handleApprove = async (booking: BookingRequest, room?: Room) => {
+    await approveBooking(booking.id);
+    if (room && window.confirm('อนุมัติการจองสำเร็จ ต้องการพิมพ์สัญญาเช่าสำหรับห้องนี้เลยหรือไม่?')) {
+      const updatedRoom: Room = {
+        ...room,
+        status: 'occupied',
+        tenantName: booking.applicantName,
+        tenantPhone: booking.applicantPhone,
+        moveInDate: booking.requestedMoveInDate,
+        activeBookingType: booking.bookingType
+      };
+      printContract(updatedRoom, settings.hotelName);
+    }
+  };
 
   return (
     <div className="space-y-4 h-full">
@@ -176,6 +196,12 @@ export default function AdminDashboard() {
           <div className="flex justify-between items-center mb-8">
             <h2 className="font-display font-bold text-slate-900 text-2xl tracking-tight">รายการคำขอจองล่าสุด</h2>
             <div className="flex gap-2">
+              <button 
+                onClick={() => setShowQR(true)}
+                className="flex items-center gap-1.5 text-sm px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-xl font-semibold text-indigo-600 transition-colors"
+              >
+                <QrCode className="w-4 h-4" /> QR Code ให้ลูกค้าจอง
+              </button>
               <button className="text-sm px-4 py-2 bg-slate-50 hover:bg-slate-100 rounded-xl font-semibold text-slate-600 transition-colors">ดูทั้งหมด</button>
             </div>
           </div>
@@ -219,7 +245,7 @@ export default function AdminDashboard() {
                         <td className="py-4 text-right">
                           <div className="flex gap-2 justify-end">
                             <button 
-                              onClick={() => approveBooking(booking.id)}
+                              onClick={() => handleApprove(booking, room)}
                               className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium hover:bg-emerald-200 transition"
                             >
                               อนุมัติ
@@ -241,6 +267,56 @@ export default function AdminDashboard() {
           )}
         </div>
       </div>
+
+      {/* Share Booking QR Modal */}
+      {showQR && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div 
+            className="bg-white rounded-[2rem] border border-slate-200 p-8 max-w-sm w-full shadow-2xl relative overflow-hidden text-center animate-in fade-in zoom-in duration-200"
+          >
+            <button 
+              onClick={() => setShowQR(false)} 
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition p-2 bg-slate-50 hover:bg-slate-100 rounded-full"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            <div className="flex justify-center mb-4 mt-2">
+              <div className="p-4 bg-indigo-50 rounded-3xl text-indigo-600">
+                <QrCode className="w-8 h-8" />
+              </div>
+            </div>
+            
+            <h3 className="text-xl font-display font-bold text-slate-900 mb-2">QR Code สำหรับจองห้องพัก</h3>
+            <p className="text-sm font-medium text-slate-500 mb-8">สแกนเพื่อเข้าสู่เว็บไซต์จองห้องพักของคุณ</p>
+            
+            <div className="flex justify-center mb-8 p-4 bg-white border-2 border-slate-100 rounded-3xl inline-block mx-auto shadow-sm">
+              <QRCodeSVG 
+                value={window.location.origin} 
+                size={200}
+                bgColor={"#ffffff"}
+                fgColor={"#0f172a"}
+                level={"H"}
+                includeMargin={false}
+              />
+            </div>
+
+            <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl p-2 pl-4 text-left">
+              <span className="text-xs text-slate-500 font-mono truncate">{window.location.origin}</span>
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.origin);
+                  alert('คัดลอกลิงก์สำเร็จ!');
+                }}
+                className="p-2 bg-white rounded-lg shadow-sm text-slate-600 hover:text-indigo-600 transition-colors shrink-0"
+                title="คัดลอกลิงก์"
+              >
+                <Copy className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -22,8 +22,8 @@ interface DataContextType {
   addRoomType: (name: string) => Promise<void>;
   deleteRoomType: (id: string) => Promise<void>;
   sendLineNotification: (payload: any) => Promise<void>;
-  addMaintenanceRequest: (req: Omit<MaintenanceRequest, 'id' | 'createdAt' | 'status'>) => void;
-  updateMaintenanceStatus: (id: string, status: MaintenanceRequest['status']) => void;
+  addMaintenanceRequest: (req: Omit<MaintenanceRequest, 'id' | 'createdAt' | 'status'>) => Promise<void>;
+  updateMaintenanceStatus: (id: string, status: MaintenanceRequest['status']) => Promise<void>;
   settings: AppSettings;
   updateSettings: (settings: AppSettings) => void;
   isConfigured: boolean;
@@ -39,10 +39,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     { id: '2', name: 'Deluxe' },
     { id: '3', name: 'Suite' }
   ]);
-  const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequest[]>([
-    { id: 'm1', roomId: '1', title: 'แอร์น้ำหยด', description: 'แอร์มีน้ำหยดลงมาตรงปลายเตียงครับ', status: 'pending', createdAt: new Date().toISOString() },
-    { id: 'm2', roomId: '2', title: 'หลอดไฟห้องน้ำขาด', description: 'เปิดไม่ติดเลยครับ', status: 'in_progress', createdAt: new Date().toISOString() }
-  ]);
+  const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequest[]>([]);
   
   const [settings, setSettings] = useState<AppSettings>(() => {
     const saved = localStorage.getItem('adminSettings');
@@ -85,10 +82,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .on('postgres_changes', { event: '*', schema: 'public', table: 'room_types' }, fetchData)
       .subscribe();
 
+    const maintenanceSub = supabase.channel('custom-maintenance-channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'maintenance_requests' }, fetchData)
+      .subscribe();
+
     return () => {
       supabase.removeChannel(roomsSub);
       supabase.removeChannel(bookingsSub);
       supabase.removeChannel(roomTypesSub);
+      supabase.removeChannel(maintenanceSub);
     };
   }, [isConfigured]);
 
@@ -121,6 +123,25 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (e) {
       console.log('Room types table might not exist yet.');
+    }
+
+    // Fetch Maintenance Requests
+    try {
+      const { data: maintenanceData, error } = await supabase
+        .from('maintenance_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (maintenanceData && !error) {
+        // Map database columns back to camelCase
+        setMaintenanceRequests(maintenanceData.map(req => ({
+          ...req,
+          roomId: req.room_id,
+          createdAt: req.created_at
+        })));
+      }
+    } catch (e) {
+      console.log('Maintenance requests table might not exist yet.');
     }
   };
 
@@ -224,15 +245,31 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await supabase.from('room_types').delete().eq('id', id);
   };
 
-  const addMaintenanceRequest = (req: Omit<MaintenanceRequest, 'id' | 'createdAt' | 'status'>) => {
-    const newReq: MaintenanceRequest = {
-      ...req,
-      id: Math.random().toString(36).substr(2, 9),
-      status: 'pending',
-      createdAt: new Date().toISOString()
-    };
-    setMaintenanceRequests(prev => [newReq, ...prev]);
+  const addMaintenanceRequest = async (req: Omit<MaintenanceRequest, 'id' | 'createdAt' | 'status'>) => {
+    if (!isConfigured) return;
     
+    // Map camelCase properties to snake_case for Supabase
+    const dbPayload = {
+      room_id: req.roomId,
+      title: req.title,
+      description: req.description,
+      status: 'pending'
+    };
+
+    const { data, error } = await supabase
+      .from('maintenance_requests')
+      .insert([dbPayload])
+      .select()
+      .single();
+
+    if (data) {
+      setMaintenanceRequests(prev => [{
+        ...data,
+        roomId: data.room_id,
+        createdAt: data.created_at
+      }, ...prev]);
+    }
+
     // ส่งแจ้งเตือน LINE (Flex Message)
     const room = rooms.find(r => r.id === req.roomId);
     sendLineNotification({
@@ -243,8 +280,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
-  const updateMaintenanceStatus = (id: string, status: MaintenanceRequest['status']) => {
+  const updateMaintenanceStatus = async (id: string, status: MaintenanceRequest['status']) => {
+    if (!isConfigured) return;
     setMaintenanceRequests(prev => prev.map(req => req.id === id ? { ...req, status } : req));
+    const { error } = await supabase
+      .from('maintenance_requests')
+      .update({ status })
+      .eq('id', id);
+    if (error) console.error("Error updating maintenance status:", error);
   };
 
   return (
