@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../lib/DataContext';
+import { supabase } from '../lib/supabase';
 import { LogOut, Receipt, QrCode, Wrench, AlertCircle, CheckCircle, Clock, X, Copy } from 'lucide-react';
 import * as motion from 'motion/react-client';
 import { cn, getRoomRent } from '../lib/utils';
@@ -14,6 +15,7 @@ export default function TenantDashboard() {
   const [reportTitle, setReportTitle] = useState('');
   const [reportDesc, setReportDesc] = useState('');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (!roomId) {
@@ -78,8 +80,13 @@ export default function TenantDashboard() {
             <h2 className="font-display font-bold text-2xl flex items-center gap-2">
               <Receipt className="w-6 h-6 text-blue-500" /> บิลค่าเช่าเดือนนี้
             </h2>
-            <span className={cn("px-3 py-1 rounded-full text-xs font-bold shadow-sm", room.isPaid ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-rose-100 text-rose-700 border border-rose-200 animate-pulse")}>
-              {room.isPaid ? "ชำระแล้ว" : "รอชำระเงิน"}
+            <span className={cn(
+              "px-3 py-1 rounded-full text-xs font-bold shadow-sm", 
+              room.isPaid ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : 
+              room.paymentSlipUrl ? "bg-amber-100 text-amber-700 border border-amber-200" : 
+              "bg-rose-100 text-rose-700 border border-rose-200 animate-pulse"
+            )}>
+              {room.isPaid ? "ชำระแล้ว" : room.paymentSlipUrl ? "รอตรวจสอบสลิป" : "รอชำระเงิน"}
             </span>
           </div>
 
@@ -117,13 +124,18 @@ export default function TenantDashboard() {
                 </p>
               </div>
               
-              {!room.isPaid && (
+              {!room.isPaid && !room.paymentSlipUrl && (
                 <button 
                   onClick={() => setShowPaymentModal(true)}
                   className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 text-white rounded-xl font-bold hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/20 transition-all"
                 >
                   <QrCode className="w-5 h-5" /> สแกนจ่าย PromptPay
                 </button>
+              )}
+              {!room.isPaid && room.paymentSlipUrl && (
+                <div className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3.5 bg-amber-100 text-amber-700 rounded-xl font-bold border border-amber-200">
+                  <Clock className="w-5 h-5" /> ส่งสลิปแล้ว กำลังรอตรวจสอบ
+                </div>
               )}
             </div>
           </div>
@@ -262,15 +274,56 @@ export default function TenantDashboard() {
               <p className="text-2xl font-display font-bold text-blue-600">฿{grandTotal.toLocaleString()}</p>
             </div>
 
-            <button 
-              onClick={() => {
-                if(room.id) updateRoom(room.id, { isPaid: true });
-                setShowPaymentModal(false);
-              }}
-              className="w-full py-3.5 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-500/20 transition-all flex justify-center items-center gap-2"
-            >
-              <CheckCircle className="w-5 h-5" /> (จำลอง) ยืนยันการชำระเงินสำเร็จ
-            </button>
+            <div className="mt-4 border-t border-slate-100 pt-6">
+              <p className="text-sm font-bold text-slate-700 mb-3 text-left">อัปโหลดหลักฐานการโอนเงิน</p>
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  {isUploading ? (
+                    <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <>
+                      <Receipt className="w-8 h-8 text-slate-400 mb-2" />
+                      <p className="text-sm text-slate-500 font-medium">คลิกเพื่ออัปโหลดสลิป</p>
+                      <p className="text-xs text-slate-400 mt-1">JPEG, PNG, หรือ JPG</p>
+                    </>
+                  )}
+                </div>
+                <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
+                  if (!e.target.files || e.target.files.length === 0) return;
+                  const file = e.target.files[0];
+                  
+                  // @ts-ignore
+                  setIsUploading(true);
+                  const fileExt = file.name.split('.').pop();
+                  const fileName = `slip-${room.number}-${Date.now()}.${fileExt}`;
+                  
+                  // @ts-ignore
+                  const { error: uploadError } = await supabase.storage
+                    .from('room-images')
+                    .upload(fileName, file);
+
+                  if (uploadError) {
+                    console.error(uploadError);
+                    alert('อัปโหลดสลิปไม่สำเร็จ กรุณาลองใหม่');
+                    // @ts-ignore
+                    setIsUploading(false);
+                    return;
+                  }
+
+                  // @ts-ignore
+                  const { data } = supabase.storage.from('room-images').getPublicUrl(fileName);
+                  
+                  if (room.id) {
+                    updateRoom(room.id, { paymentSlipUrl: data.publicUrl });
+                  }
+                  
+                  // @ts-ignore
+                  setIsUploading(false);
+                  setShowPaymentModal(false);
+                  alert('อัปโหลดหลักฐานการโอนเงินเรียบร้อยแล้ว กรุณารอแอดมินตรวจสอบ');
+                }} disabled={isUploading} />
+              </label>
+            </div>
           </motion.div>
         </div>
       )}

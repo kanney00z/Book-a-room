@@ -31,6 +31,8 @@ export interface Room {
   // Position for Map View
   posX?: number;
   posY?: number;
+  // Payment Verification
+  paymentSlipUrl?: string;
 }
 
 export interface BookingRequest {

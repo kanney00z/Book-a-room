@@ -14,6 +14,7 @@ export default function AdminBilling() {
 
   const [editingRoom, setEditingRoom] = useState<string | null>(null);
   const [confirmRollover, setConfirmRollover] = useState<string | null>(null);
+  const [showSlipModal, setShowSlipModal] = useState<Room | null>(null);
   const [editValues, setEditValues] = useState<{
     currentWaterMeter?: number;
     currentElectricMeter?: number;
@@ -604,17 +605,26 @@ export default function AdminBilling() {
 
                   <td className="py-5 px-4 text-center">
                     <div className="flex flex-col items-center gap-1.5">
-                      <button 
-                        onClick={() => togglePaid(room.id, !!room.isPaid)}
-                        className={cn(
-                          "px-4 py-1.5 text-xs font-bold rounded-full transition-all shadow-sm w-full max-w-[100px]",
-                          room.isPaid 
-                            ? "bg-emerald-100/80 text-emerald-700 hover:bg-emerald-200 border border-emerald-200" 
-                            : "bg-rose-100 text-rose-700 hover:bg-rose-200 border border-rose-200"
-                        )}
-                      >
-                        {room.isPaid ? 'ชำระแล้ว' : 'ค้างชำระ'}
-                      </button>
+                      {(!room.isPaid && room.paymentSlipUrl) ? (
+                        <button 
+                          onClick={() => setShowSlipModal(room)}
+                          className="px-4 py-1.5 text-xs font-bold rounded-full transition-all shadow-sm w-full max-w-[100px] bg-amber-100 text-amber-700 hover:bg-amber-200 border border-amber-200 flex items-center justify-center gap-1"
+                        >
+                          <Receipt className="w-3.5 h-3.5" /> ตรวจสลิป
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => togglePaid(room.id, !!room.isPaid)}
+                          className={cn(
+                            "px-4 py-1.5 text-xs font-bold rounded-full transition-all shadow-sm w-full max-w-[100px]",
+                            room.isPaid 
+                              ? "bg-emerald-100/80 text-emerald-700 hover:bg-emerald-200 border border-emerald-200" 
+                              : "bg-rose-100 text-rose-700 hover:bg-rose-200 border border-rose-200"
+                          )}
+                        >
+                          {room.isPaid ? 'ชำระแล้ว' : 'ค้างชำระ'}
+                        </button>
+                      )}
                       <span className="text-[10px] text-slate-500 font-medium bg-slate-50 px-2 py-0.5 rounded border border-slate-100 text-center">
                         {room.activeBookingType === 'daily' ? (
                           <>เช็คเอาท์ {room.moveOutDate ? new Date(room.moveOutDate).toLocaleDateString('th-TH', { year: '2-digit', month: 'short', day: 'numeric' }) : '-'}</>
@@ -762,6 +772,66 @@ export default function AdminBilling() {
                 className="w-full py-3.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 shadow-md hover:shadow-indigo-600/20 transition-all flex justify-center items-center gap-2"
               >
                 <Save className="w-5 h-5" /> บันทึกการตั้งค่า
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Slip Verification Modal */}
+      {showSlipModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="bg-white rounded-[2rem] border border-slate-200 p-8 max-w-sm w-full shadow-2xl relative overflow-hidden text-center"
+          >
+            <button 
+              onClick={() => setShowSlipModal(null)} 
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition p-2 bg-slate-50 hover:bg-slate-100 rounded-full"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            <div className="flex justify-center mb-4">
+              <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
+                <Receipt className="w-6 h-6" />
+              </div>
+            </div>
+            
+            <h3 className="text-xl font-bold text-slate-800 font-display mb-1">ตรวจสอบสลิปห้อง {showSlipModal.number}</h3>
+            <p className="text-sm font-medium text-slate-500 mb-6">ยอดชำระที่ต้องได้รับ: <span className="text-blue-600 font-bold tracking-wide">฿{calculateTotal(showSlipModal).toLocaleString()}</span></p>
+
+            <div className="bg-slate-50 rounded-xl overflow-hidden border border-slate-200 mb-6 flex justify-center">
+              {showSlipModal.paymentSlipUrl ? (
+                <img 
+                  src={showSlipModal.paymentSlipUrl} 
+                  alt="Payment Slip" 
+                  className="max-h-96 object-contain"
+                />
+              ) : (
+                <div className="p-8 text-slate-400 font-medium">ไม่พบรูปภาพสลิป</div>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button 
+                onClick={() => {
+                  updateRoom(showSlipModal.id, { paymentSlipUrl: null });
+                  setShowSlipModal(null);
+                }}
+                className="flex-1 py-3 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-xl font-bold transition-all border border-rose-200/50"
+              >
+                ปฏิเสธสลิป
+              </button>
+              <button 
+                onClick={() => {
+                  updateRoom(showSlipModal.id, { isPaid: true, paymentSlipUrl: null });
+                  setShowSlipModal(null);
+                }}
+                className="flex-1 py-3 bg-emerald-500 text-white hover:bg-emerald-600 rounded-xl font-bold shadow-md hover:shadow-emerald-500/20 transition-all"
+              >
+                อนุมัติรับเงิน
               </button>
             </div>
           </motion.div>
