@@ -62,10 +62,11 @@ export default function AdminMaintenance() {
                           </span>
                           {col.id === 'completed' && (
                             <button 
-                              onClick={() => {
-                                if (window.confirm('ต้องการลบรายการแจ้งซ่อมนี้ใช่หรือไม่?')) {
-                                  deleteMaintenanceRequest(req.id);
-                                }
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                deleteMaintenanceRequest(req.id).catch(err => console.error(err));
                               }}
                               className="text-slate-300 hover:text-rose-500 transition-colors p-1"
                               title="ลบรายการนี้"
