@@ -33,6 +33,8 @@ export interface Room {
   posY?: number;
   // Payment Verification
   paymentSlipUrl?: string;
+  // Digital Contract
+  contractSignature?: string;
 }
 
 export interface BookingRequest {

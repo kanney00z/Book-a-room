@@ -443,6 +443,71 @@ function createCheckoutFlex(data: any) {
   };
 }
 
+function createSlipUploadFlex(data: any) {
+  return {
+    "type": "flex",
+    "altText": "💸 แจ้งโอนเงินชำระค่าเช่า",
+    "contents": {
+      "type": "bubble",
+      "header": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "text",
+            "text": "PAYMENT",
+            "weight": "bold",
+            "color": "#ffffff",
+            "size": "sm"
+          },
+          {
+            "type": "text",
+            "text": "มีการแจ้งชำระเงินใหม่",
+            "weight": "bold",
+            "size": "xl",
+            "color": "#ffffff",
+            "margin": "md"
+          }
+        ],
+        "backgroundColor": "#10b981",
+        "paddingAll": "20px"
+      },
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              { "type": "text", "text": "ห้องพัก", "color": "#8c8c8c", "size": "sm", "flex": 2 },
+              { "type": "text", "text": String(data.roomNumber), "wrap": true, "color": "#111827", "size": "md", "weight": "bold", "flex": 4 }
+            ],
+            "margin": "md"
+          },
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              { "type": "text", "text": "ยอดโอน", "color": "#8c8c8c", "size": "sm", "flex": 2 },
+              { "type": "text", "text": `${Number(data.amount).toLocaleString()} บาท`, "wrap": true, "color": "#059669", "size": "md", "weight": "bold", "flex": 4 }
+            ],
+            "margin": "md"
+          },
+          {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+              { "type": "text", "text": "กรุณาตรวจสอบสลิปในระบบแอดมิน", "color": "#6b7280", "size": "xs", "align": "center", "margin": "lg" }
+            ]
+          }
+        ],
+        "paddingAll": "20px"
+      }
+    }
+  };
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: {
@@ -466,6 +531,8 @@ Deno.serve(async (req: Request) => {
       messageObj = createMaintenanceFlex(payload);
     } else if (payload.type === 'checkout') {
       messageObj = createCheckoutFlex(payload);
+    } else if (payload.type === 'slip_upload') {
+      messageObj = createSlipUploadFlex(payload);
     } else {
       messageObj = {
         type: "text",

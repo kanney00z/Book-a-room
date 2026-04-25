@@ -196,7 +196,9 @@ export function printContract(room: Room, hotelName: string) {
 
         <div class="signatures">
           <div class="signature-box">
-            <div class="signature-line"></div>
+            ${room.contractSignature 
+              ? '<img src="' + room.contractSignature + '" alt="Signature" style="height: 50px; object-fit: contain; margin-bottom: 0px;" />'
+              : '<div class="signature-line"></div>'}
             <div>( ${room.tenantName || 'ผู้เช่า'} )</div>
             <div style="font-size: 13px; color: #64748b; margin-top: 5px;">ผู้เช่า / ผู้เข้าพัก</div>
           </div>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useData } from '../lib/DataContext';
 import { Room } from '../types';
-import { FileText, CheckCircle, Receipt, Save, Printer, CalendarDays, Settings, X, QrCode } from 'lucide-react';
+import { FileText, CheckCircle, Receipt, Save, Printer, CalendarDays, Settings, X, QrCode, Send } from 'lucide-react';
 import { cn, getRoomRent } from '../lib/utils';
 import * as motion from 'motion/react-client';
 
@@ -98,6 +98,32 @@ export default function AdminBilling() {
       isPaid: false
     });
     setConfirmRollover(null);
+  };
+
+  const handleShareLine = (room: Room) => {
+    const total = calculateTotal(room);
+    const dueDate = getNextDueDate(room.moveInDate, room.isPaid);
+    
+    let text = `📄 บิลสรุปค่าเช่าห้อง ${room.number}\n`;
+    text += `ชื่อผู้เช่า: ${room.tenantName || '-'}\n`;
+    text += `\nรายละเอียด:\n`;
+    text += `- ค่าห้องพัก: ${getRoomRent(room).toLocaleString()} บาท\n`;
+    
+    if (room.activeBookingType !== 'daily') {
+      const waterUnit = (room.currentWaterMeter || 0) - (room.lastWaterMeter || 0);
+      const electricUnit = (room.currentElectricMeter || 0) - (room.lastElectricMeter || 0);
+      text += `- ค่าน้ำประปา (${waterUnit} หน่วย): ${(waterUnit * WATER_RATE).toLocaleString()} บาท\n`;
+      text += `- ค่าไฟฟ้า (${electricUnit} หน่วย): ${(electricUnit * ELECTRIC_RATE).toLocaleString()} บาท\n`;
+    }
+    
+    text += `\n💰 ยอดรวมที่ต้องชำระ: ${total.toLocaleString()} บาท\n`;
+    text += `📅 กำหนดชำระภายใน: ${dueDate}\n`;
+    
+    text += `\nล็อกอินเพื่อดูบิลและส่งสลิปได้ที่นี่:\n`;
+    text += `${window.location.origin}/tenant`;
+    
+    const encodedText = encodeURIComponent(text);
+    window.open(`https://line.me/R/msg/text/?${encodedText}`, '_blank');
   };
 
   const handlePrint = (room: Room) => {
@@ -354,12 +380,20 @@ export default function AdminBilling() {
                     )}
                   </div>
                 </div>
-                <button 
-                  onClick={() => handlePrint(room)}
-                  className="w-10 h-10 flex items-center justify-center bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl transition-all"
-                >
-                  <Printer className="w-4 h-4" />
-                </button>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => handleShareLine(room)}
+                    className="w-10 h-10 flex items-center justify-center bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl transition-all"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={() => handlePrint(room)}
+                    className="w-10 h-10 flex items-center justify-center bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl transition-all"
+                  >
+                    <Printer className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
               {/* Body: Rent & Meters */}
@@ -675,6 +709,13 @@ export default function AdminBilling() {
                             </button>
                           )
                         )}
+                        <button 
+                          onClick={() => handleShareLine(room)}
+                          className="w-10 h-10 flex items-center justify-center bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl transition-all shrink-0"
+                          title="แชร์บิลเข้า LINE"
+                        >
+                          <Send className="w-4 h-4 shrink-0" />
+                        </button>
                         <button 
                           onClick={() => handlePrint(room)}
                           className="w-10 h-10 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-all shrink-0"

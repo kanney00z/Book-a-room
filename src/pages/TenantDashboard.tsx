@@ -2,22 +2,34 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../lib/DataContext';
 import { supabase } from '../lib/supabase';
-import { LogOut, Receipt, QrCode, Wrench, AlertCircle, CheckCircle, Clock, X, Copy, Trash2 } from 'lucide-react';
+import { LogOut, Receipt, QrCode, Wrench, AlertCircle, CheckCircle, Clock, X, PenTool, Trash2 } from 'lucide-react';
 import * as motion from 'motion/react-client';
 import imageCompression from 'browser-image-compression';
+import SignatureCanvas from 'react-signature-canvas';
+import { useRef } from 'react';
 import { cn, getRoomRent } from '../lib/utils';
 
 export default function TenantDashboard() {
   const navigate = useNavigate();
-  const { rooms, maintenanceRequests, addMaintenanceRequest, deleteMaintenanceRequest, updateRoom, settings } = useData();
+  const { rooms, maintenanceRequests, addMaintenanceRequest, deleteMaintenanceRequest, updateRoom, settings, sendLineNotification } = useData();
   const [roomId, setRoomId] = useState(localStorage.getItem('tenantRoomId'));
   
   const [isReporting, setIsReporting] = useState(false);
   const [reportTitle, setReportTitle] = useState('');
   const [reportDesc, setReportDesc] = useState('');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showSignModal, setShowSignModal] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [toastMessage, setToastMessage] = useState<{title: string, message: string, type: 'success' | 'error'} | null>(null);
+  
+  const sigCanvas = useRef<SignatureCanvas>(null);
+
+  useEffect(() => {
+    if (toastMessage) {
+      const timer = setTimeout(() => setToastMessage(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [toastMessage]);
 
   useEffect(() => {
     if (!roomId) {
@@ -42,6 +54,14 @@ export default function TenantDashboard() {
       title: reportTitle,
       description: reportDesc
     });
+    
+    sendLineNotification({
+      type: 'maintenance',
+      roomNumber: room.number,
+      title: reportTitle,
+      description: reportDesc
+    });
+
     setIsReporting(false);
     setReportTitle('');
     setReportDesc('');
@@ -57,6 +77,17 @@ export default function TenantDashboard() {
   const grandTotal = getRoomRent(room) + waterTotal + electricTotal;
 
   const myRequests = maintenanceRequests.filter(r => r.roomId === room.id);
+
+  const handleSaveSignature = async () => {
+    if (!sigCanvas.current || sigCanvas.current.isEmpty()) {
+      setToastMessage({ title: 'ข้อผิดพลาด', message: 'กรุณาเซ็นชื่อก่อนบันทึก', type: 'error' });
+      return;
+    }
+    const dataUrl = sigCanvas.current.getCanvas().toDataURL('image/png');
+    await updateRoom(room.id, { contractSignature: dataUrl });
+    setShowSignModal(false);
+    setToastMessage({ title: 'สำเร็จ', message: 'บันทึกลายเซ็นเรียบร้อยแล้ว', type: 'success' });
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-blue-500 selection:text-white pb-20">
@@ -80,6 +111,27 @@ export default function TenantDashboard() {
       </nav>
 
       <div className="max-w-3xl mx-auto px-6 mt-8 space-y-8">
+        {/* Contract Signature Banner */}
+        {!room.contractSignature && room.status === 'occupied' && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-5 text-white shadow-lg shadow-orange-500/20 flex flex-col md:flex-row items-center justify-between gap-4"
+          >
+            <div>
+              <h3 className="font-bold flex items-center gap-2 text-lg">
+                <PenTool className="w-5 h-5" /> กรุณาเซ็นสัญญาเช่าห้องพัก
+              </h3>
+              <p className="text-orange-50 text-sm mt-1">เพื่อความสมบูรณ์ของสัญญาเช่า กรุณาเซ็นชื่อรับทราบเงื่อนไขแบบดิจิทัล</p>
+            </div>
+            <button 
+              onClick={() => setShowSignModal(true)}
+              className="px-6 py-2.5 bg-white text-orange-600 font-bold rounded-xl hover:bg-orange-50 transition shadow-sm w-full md:w-auto shrink-0"
+            >
+              เซ็นสัญญาตอนนี้
+            </button>
+          </motion.div>
+        )}
+
         {/* Bill Section */}
         <section>
           <div className="flex items-center justify-between mb-4">
@@ -347,6 +399,11 @@ export default function TenantDashboard() {
                     
                     if (room.id) {
                       updateRoom(room.id, { paymentSlipUrl: data.publicUrl });
+                      sendLineNotification({
+                        type: 'slip_upload',
+                        roomNumber: room.number,
+                        amount: grandTotal
+                      });
                     }
                     
                     // @ts-ignore
@@ -368,6 +425,49 @@ export default function TenantDashboard() {
                   }
                 }} disabled={isUploading} />
               </label>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Signature Modal */}
+      {showSignModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="bg-white rounded-[2rem] border border-slate-200 p-6 max-w-md w-full shadow-2xl relative flex flex-col"
+          >
+            <button 
+              onClick={() => setShowSignModal(false)} 
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition p-2 bg-slate-50 hover:bg-slate-100 rounded-full"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h3 className="text-xl font-bold text-slate-800 font-display mb-2 text-center">เซ็นสัญญาเช่า</h3>
+            <p className="text-sm text-slate-500 mb-4 text-center">กรุณาเซ็นชื่อของคุณในกรอบด้านล่าง</p>
+            
+            <div className="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 overflow-hidden touch-none h-64 w-full">
+              <SignatureCanvas 
+                ref={sigCanvas}
+                canvasProps={{ className: 'w-full h-full' }}
+                penColor="blue"
+              />
+            </div>
+            
+            <div className="flex gap-3 mt-6">
+              <button 
+                onClick={() => sigCanvas.current?.clear()}
+                className="px-4 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition"
+              >
+                ล้างลายเซ็น
+              </button>
+              <button 
+                onClick={handleSaveSignature}
+                className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-md shadow-blue-600/20 transition flex items-center justify-center gap-2"
+              >
+                <PenTool className="w-4 h-4" /> บันทึกลายเซ็น
+              </button>
             </div>
           </motion.div>
         </div>
@@ -412,10 +512,6 @@ export default function TenantDashboard() {
             </button>
           </motion.div>
           
-          {/* Auto dismiss logic */}
-          <span className="hidden">
-            {setTimeout(() => setToastMessage(null), 4000)}
-          </span>
         </div>
       )}
     </div>

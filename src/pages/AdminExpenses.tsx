@@ -122,7 +122,8 @@ export default function AdminExpenses() {
         </div>
 
         <div className="md:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Desktop View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/80 border-b border-slate-100">
@@ -160,9 +161,7 @@ export default function AdminExpenses() {
                       </td>
                       <td className="p-4 text-center">
                         <button 
-                          onClick={() => {
-                            if (window.confirm('ต้องการลบรายการนี้ใช่หรือไม่?')) deleteExpense(expense.id);
-                          }}
+                          onClick={() => deleteExpense(expense.id)}
                           className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -173,6 +172,45 @@ export default function AdminExpenses() {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile View */}
+          <div className="md:hidden flex flex-col divide-y divide-slate-100">
+            {filteredExpenses.length === 0 ? (
+              <div className="p-8 text-center text-slate-400">
+                ไม่มีบันทึกรายจ่ายในเดือนนี้
+              </div>
+            ) : (
+              filteredExpenses.map((expense) => (
+                <div key={expense.id} className="p-5 flex flex-col gap-3 hover:bg-slate-50 transition">
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="font-bold text-slate-800 text-lg leading-tight">{expense.title}</div>
+                    <div className="font-display font-bold text-rose-600 text-lg shrink-0">
+                      ฿{expense.amount.toLocaleString()}
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={cn("px-2.5 py-1 rounded-full text-xs font-bold border", getCategoryColor(expense.category))}>
+                        {getCategoryLabel(expense.category)}
+                      </span>
+                      <div className="flex items-center gap-1.5 text-slate-500 text-xs font-medium">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {new Date(expense.expense_date).toLocaleDateString('th-TH')}
+                      </div>
+                    </div>
+                    
+                    <button 
+                      onClick={() => deleteExpense(expense.id)}
+                      className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 bg-slate-50 rounded-lg transition"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
