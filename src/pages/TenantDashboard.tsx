@@ -246,11 +246,11 @@ export default function TenantDashboard() {
           <motion.div 
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="bg-white rounded-[2rem] border border-slate-200 p-8 max-w-sm w-full shadow-2xl relative overflow-hidden text-center"
+            className="bg-white rounded-[2rem] border border-slate-200 p-6 md:p-8 max-w-sm w-full max-h-[90vh] overflow-y-auto shadow-2xl relative text-center"
           >
             <button 
               onClick={() => setShowPaymentModal(false)} 
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition p-2 bg-slate-50 hover:bg-slate-100 rounded-full"
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition p-2 bg-slate-50 hover:bg-slate-100 rounded-full z-10"
             >
               <X className="w-5 h-5" />
             </button>
