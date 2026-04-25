@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../lib/DataContext';
 import { supabase } from '../lib/supabase';
-import { LogOut, Receipt, QrCode, Wrench, AlertCircle, CheckCircle, Clock, X, Copy } from 'lucide-react';
+import { LogOut, Receipt, QrCode, Wrench, AlertCircle, CheckCircle, Clock, X, Copy, Trash2 } from 'lucide-react';
 import * as motion from 'motion/react-client';
 import imageCompression from 'browser-image-compression';
 import { cn, getRoomRent } from '../lib/utils';
 
 export default function TenantDashboard() {
   const navigate = useNavigate();
-  const { rooms, maintenanceRequests, addMaintenanceRequest, updateRoom, settings } = useData();
+  const { rooms, maintenanceRequests, addMaintenanceRequest, deleteMaintenanceRequest, updateRoom, settings } = useData();
   const [roomId, setRoomId] = useState(localStorage.getItem('tenantRoomId'));
   
   const [isReporting, setIsReporting] = useState(false);
@@ -229,9 +229,23 @@ export default function TenantDashboard() {
                       </span>
                     )}
                     {req.status === 'completed' && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold bg-emerald-50 text-emerald-600 border border-emerald-200/50">
-                        <CheckCircle className="w-4 h-4" /> เสร็จสิ้น
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold bg-emerald-50 text-emerald-600 border border-emerald-200/50">
+                          <CheckCircle className="w-4 h-4" /> เสร็จสิ้น
+                        </span>
+                        <button 
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            deleteMaintenanceRequest(req.id).catch(err => console.error(err));
+                          }}
+                          className="p-2 bg-slate-50 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-colors border border-slate-100"
+                          title="ลบรายการนี้"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     )}
                   </div>
                 </motion.div>
