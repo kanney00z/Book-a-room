@@ -16,6 +16,7 @@ export default function TenantDashboard() {
   const [reportDesc, setReportDesc] = useState('');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [toastMessage, setToastMessage] = useState<{title: string, message: string, type: 'success' | 'error'} | null>(null);
 
   useEffect(() => {
     if (!roomId) {
@@ -43,7 +44,11 @@ export default function TenantDashboard() {
     setIsReporting(false);
     setReportTitle('');
     setReportDesc('');
-    alert('ส่งเรื่องแจ้งซ่อมเรียบร้อยแล้ว ช่างจะติดต่อกลับโดยเร็วที่สุด');
+    setToastMessage({
+      title: 'ส่งเรื่องสำเร็จ',
+      message: 'ส่งเรื่องแจ้งซ่อมเรียบร้อยแล้ว ช่างจะติดต่อกลับโดยเร็วที่สุด',
+      type: 'success'
+    });
   };
 
   const waterTotal = ((room.currentWaterMeter || 0) - (room.lastWaterMeter || 0)) * 18;
@@ -304,7 +309,11 @@ export default function TenantDashboard() {
 
                   if (uploadError) {
                     console.error(uploadError);
-                    alert('อัปโหลดสลิปไม่สำเร็จ กรุณาลองใหม่');
+                    setToastMessage({
+                      title: 'ข้อผิดพลาด',
+                      message: 'อัปโหลดสลิปไม่สำเร็จ กรุณาลองใหม่',
+                      type: 'error'
+                    });
                     // @ts-ignore
                     setIsUploading(false);
                     return;
@@ -320,11 +329,61 @@ export default function TenantDashboard() {
                   // @ts-ignore
                   setIsUploading(false);
                   setShowPaymentModal(false);
-                  alert('อัปโหลดหลักฐานการโอนเงินเรียบร้อยแล้ว กรุณารอแอดมินตรวจสอบ');
+                  setToastMessage({
+                    title: 'อัปโหลดสำเร็จ',
+                    message: 'อัปโหลดหลักฐานการโอนเงินเรียบร้อยแล้ว กรุณารอแอดมินตรวจสอบ',
+                    type: 'success'
+                  });
                 }} disabled={isUploading} />
               </label>
             </div>
           </motion.div>
+        </div>
+      )}
+
+      {/* Beautiful Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-full max-w-sm px-4">
+          <motion.div 
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className={cn(
+              "w-full rounded-2xl p-4 shadow-xl shadow-slate-900/10 border flex items-start gap-3 backdrop-blur-md",
+              toastMessage.type === 'success' ? "bg-emerald-50/95 border-emerald-200" : "bg-rose-50/95 border-rose-200"
+            )}
+          >
+            <div className="shrink-0 mt-0.5">
+              {toastMessage.type === 'success' ? (
+                <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                  <CheckCircle className="w-5 h-5" />
+                </div>
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center text-rose-600">
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+              )}
+            </div>
+            <div className="flex-1">
+              <h4 className={cn("font-bold text-sm", toastMessage.type === 'success' ? "text-emerald-800" : "text-rose-800")}>
+                {toastMessage.title}
+              </h4>
+              <p className={cn("text-xs font-medium mt-0.5", toastMessage.type === 'success' ? "text-emerald-600" : "text-rose-600")}>
+                {toastMessage.message}
+              </p>
+            </div>
+            <button 
+              onClick={() => setToastMessage(null)}
+              className={cn("p-1 rounded-full transition-colors", toastMessage.type === 'success' ? "hover:bg-emerald-100 text-emerald-500" : "hover:bg-rose-100 text-rose-500")}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+          
+          {/* Auto dismiss logic */}
+          <span className="hidden">
+            {setTimeout(() => setToastMessage(null), 4000)}
+          </span>
         </div>
       )}
     </div>
