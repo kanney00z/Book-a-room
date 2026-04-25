@@ -1,11 +1,11 @@
 import { useData } from '../lib/DataContext';
 import { MaintenanceRequest } from '../types';
-import { Wrench, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { Wrench, Clock, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import * as motion from 'motion/react-client';
 
 export default function AdminMaintenance() {
-  const { maintenanceRequests, updateMaintenanceStatus, rooms } = useData();
+  const { maintenanceRequests, updateMaintenanceStatus, deleteMaintenanceRequest, rooms } = useData();
 
   const columns = [
     { id: 'pending', title: 'รอดำเนินการ', icon: AlertCircle, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-200' },
@@ -50,15 +50,30 @@ export default function AdminMaintenance() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.05 }}
-                      className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow group"
+                      className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow group relative"
                     >
                       <div className="flex justify-between items-start mb-3">
                         <span className="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-slate-200">
                           ห้อง {room ? room.number : 'ไม่ทราบ'}
                         </span>
-                        <span className="text-[10px] font-semibold text-slate-400 uppercase">
-                          {new Date(req.createdAt).toLocaleDateString()}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-semibold text-slate-400 uppercase">
+                            {new Date(req.createdAt).toLocaleDateString()}
+                          </span>
+                          {col.id === 'completed' && (
+                            <button 
+                              onClick={() => {
+                                if (window.confirm('ต้องการลบรายการแจ้งซ่อมนี้ใช่หรือไม่?')) {
+                                  deleteMaintenanceRequest(req.id);
+                                }
+                              }}
+                              className="text-slate-300 hover:text-rose-500 transition-colors p-1"
+                              title="ลบรายการนี้"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
                       </div>
                       <h4 className="font-bold text-slate-800 text-lg mb-1">{req.title}</h4>
                       <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">{req.description}</p>

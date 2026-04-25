@@ -24,8 +24,8 @@ interface DataContextType {
   sendLineNotification: (payload: any) => Promise<void>;
   addMaintenanceRequest: (req: Omit<MaintenanceRequest, 'id' | 'createdAt' | 'status'>) => Promise<void>;
   updateMaintenanceStatus: (id: string, status: MaintenanceRequest['status']) => Promise<void>;
+  deleteMaintenanceRequest: (id: string) => Promise<void>;
   settings: AppSettings;
-  updateSettings: (settings: AppSettings) => void;
   updateSettings: (settings: AppSettings) => void;
   isConfigured: boolean;
   expenses: Expense[];
@@ -314,6 +314,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (error) console.error("Error updating maintenance status:", error);
   };
 
+  const deleteMaintenanceRequest = async (id: string) => {
+    if (!isConfigured) return;
+    setMaintenanceRequests(prev => prev.filter(req => req.id !== id));
+    await supabase.from('maintenance_requests').delete().eq('id', id);
+  };
+
   const addExpense = async (expense: Omit<Expense, 'id' | 'created_at'>) => {
     if (!isConfigured) return;
     const { data, error } = await supabase.from('expenses').insert([expense]).select().single();
@@ -333,7 +339,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       updateRoom, addRoom, deleteRoom, 
       addBooking, approveBooking, rejectBooking, 
       addRoomType, deleteRoomType, sendLineNotification,
-      addMaintenanceRequest, updateMaintenanceStatus,
+      addMaintenanceRequest, updateMaintenanceStatus, deleteMaintenanceRequest,
       settings, updateSettings,
       isConfigured, expenses, addExpense, deleteExpense
     }}>
