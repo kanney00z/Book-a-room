@@ -56,3 +56,14 @@ export interface MaintenanceRequest {
   status: 'pending' | 'in_progress' | 'completed';
   createdAt: string;
 }
+
+export type ExpenseCategory = 'utilities' | 'maintenance' | 'salary' | 'marketing' | 'other';
+
+export interface Expense {
+  id: string;
+  title: string;
+  amount: number;
+  category: ExpenseCategory;
+  expense_date: string;
+  created_at?: string;
+}

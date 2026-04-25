@@ -12,6 +12,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminRooms from './pages/AdminRooms';
 import AdminBilling from './pages/AdminBilling';
 import AdminMaintenance from './pages/AdminMaintenance';
+import AdminExpenses from './pages/AdminExpenses';
 import Login from './pages/Login';
 import TenantLogin from './pages/TenantLogin';
 import TenantDashboard from './pages/TenantDashboard';
@@ -56,6 +57,7 @@ export default function App() {
             <Route path="rooms" element={<AdminRooms />} />
             <Route path="billing" element={<AdminBilling />} />
             <Route path="maintenance" element={<AdminMaintenance />} />
+            <Route path="expenses" element={<AdminExpenses />} />
           </Route>
         </Routes>
       </Router>

@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Key, FileText, Settings, Globe, LogOut, Wrench } from 'lucide-react';
+import { LayoutDashboard, Key, FileText, Settings, Globe, LogOut, Wrench, Receipt } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useData } from '../lib/DataContext';
 
@@ -10,6 +10,7 @@ export default function AdminLayout({ onLogout }: { onLogout?: () => void }) {
     { name: 'จัดการห้องพัก (Rooms)', shortName: 'ห้องพัก', path: '/admin/rooms', icon: Key },
     { name: 'ระบบแจ้งซ่อม (Maintenance)', shortName: 'แจ้งซ่อม', path: '/admin/maintenance', icon: Wrench },
     { name: 'จัดการบิล (Billing)', shortName: 'บิลเช่า', path: '/admin/billing', icon: FileText },
+    { name: 'บัญชีรายจ่าย (Expenses)', shortName: 'รายจ่าย', path: '/admin/expenses', icon: Receipt },
   ];
 
   return (

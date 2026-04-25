@@ -7,7 +7,7 @@ import { Room, BookingRequest } from '../types';
 import { QRCodeSVG } from 'qrcode.react';
 
 export default function AdminDashboard() {
-  const { rooms, bookings, approveBooking, rejectBooking, settings } = useData();
+  const { rooms, bookings, approveBooking, rejectBooking, settings, expenses } = useData();
   const [showQR, setShowQR] = useState(false);
 
   const occupiedRooms = rooms.filter(r => r.status === 'occupied').length;
@@ -23,16 +23,28 @@ export default function AdminDashboard() {
     { label: 'คำขอจองห้องรอรอการตรวจสอบ', value: pendingBookings, icon: AlertCircle, bg: 'bg-orange-100', color: 'text-orange-700' }
   ];
 
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+
   const revenue = rooms.filter(r => r.status === 'occupied').reduce((acc, curr) => acc + curr.monthlyRent, 0);
+  
+  const currentMonthExpenses = expenses
+    .filter(e => {
+      const d = new Date(e.expense_date);
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    })
+    .reduce((sum, e) => sum + e.amount, 0);
+
+  const netProfit = revenue - currentMonthExpenses;
 
   // Mock data for beautiful charts
   const revenueData = [
-    { name: 'ต.ค.', revenue: revenue * 0.8 },
-    { name: 'พ.ย.', revenue: revenue * 0.85 },
-    { name: 'ธ.ค.', revenue: revenue * 0.9 },
-    { name: 'ม.ค.', revenue: revenue * 0.95 },
-    { name: 'ก.พ.', revenue: revenue * 0.98 },
-    { name: 'มี.ค.', revenue: revenue },
+    { name: 'ต.ค.', revenue: revenue * 0.8, expenses: currentMonthExpenses * 0.7 },
+    { name: 'พ.ย.', revenue: revenue * 0.85, expenses: currentMonthExpenses * 0.8 },
+    { name: 'ธ.ค.', revenue: revenue * 0.9, expenses: currentMonthExpenses * 0.6 },
+    { name: 'ม.ค.', revenue: revenue * 0.95, expenses: currentMonthExpenses * 1.1 },
+    { name: 'ก.พ.', revenue: revenue * 0.98, expenses: currentMonthExpenses * 0.9 },
+    { name: 'มี.ค.', revenue: revenue, expenses: currentMonthExpenses },
   ];
 
   const occupancyData = [
@@ -99,8 +111,8 @@ export default function AdminDashboard() {
             {pendingBookings > 0 && <span className="text-xs font-bold text-orange-700 bg-orange-100/80 px-3 py-1.5 rounded-full backdrop-blur-sm shadow-sm animate-pulse">จอง {pendingBookings}</span>}
           </div>
           <div className="mt-6">
-            <p className="text-slate-500 font-medium text-sm mb-1">รายได้ฐาน (Base Revenue)</p>
-            <h3 className="text-4xl font-display font-bold text-indigo-600 tracking-tight">฿{revenue.toLocaleString()}</h3>
+            <p className="text-slate-500 font-medium text-sm mb-1">กำไรสุทธิ (Net Profit)</p>
+            <h3 className="text-4xl font-display font-bold text-indigo-600 tracking-tight">฿{netProfit.toLocaleString()}</h3>
           </div>
         </div>
       </div>
@@ -126,15 +138,21 @@ export default function AdminDashboard() {
                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
                   </linearGradient>
+                  <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
+                  </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dx={-10} tickFormatter={(value) => `฿${value / 1000}k`} />
                 <Tooltip 
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}
-                  formatter={(value: number) => [`฿${value.toLocaleString()}`, 'รายได้']}
+                  formatter={(value: number, name: string) => [`฿${value.toLocaleString()}`, name === 'revenue' ? 'รายได้' : 'รายจ่าย']}
                 />
-                <Area type="monotone" dataKey="revenue" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
+                <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px' }}/>
+                <Area type="monotone" name="รายได้" dataKey="revenue" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
+                <Area type="monotone" name="รายจ่าย" dataKey="expenses" stroke="#f43f5e" strokeWidth={3} fillOpacity={1} fill="url(#colorExpense)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>

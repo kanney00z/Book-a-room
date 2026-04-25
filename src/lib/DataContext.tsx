@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Room, BookingRequest, RoomStatus, RoomType, MaintenanceRequest } from '../types';
+import { Room, BookingRequest, RoomStatus, RoomType, MaintenanceRequest, Expense } from '../types';
 import { supabase } from './supabase';
 
 interface AppSettings {
@@ -26,7 +26,11 @@ interface DataContextType {
   updateMaintenanceStatus: (id: string, status: MaintenanceRequest['status']) => Promise<void>;
   settings: AppSettings;
   updateSettings: (settings: AppSettings) => void;
+  updateSettings: (settings: AppSettings) => void;
   isConfigured: boolean;
+  expenses: Expense[];
+  addExpense: (expense: Omit<Expense, 'id' | 'created_at'>) => Promise<void>;
+  deleteExpense: (id: string) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -40,6 +44,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     { id: '3', name: 'Suite' }
   ]);
   const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequest[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   
   const [settings, setSettings] = useState<AppSettings>(() => {
     const saved = localStorage.getItem('adminSettings');
@@ -86,11 +91,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .on('postgres_changes', { event: '*', schema: 'public', table: 'maintenance_requests' }, fetchData)
       .subscribe();
 
+    const expensesSub = supabase.channel('custom-expenses-channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, fetchData)
+      .subscribe();
+
     return () => {
       supabase.removeChannel(roomsSub);
       supabase.removeChannel(bookingsSub);
       supabase.removeChannel(roomTypesSub);
       supabase.removeChannel(maintenanceSub);
+      supabase.removeChannel(expensesSub);
     };
   }, [isConfigured]);
 
@@ -142,6 +152,20 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (e) {
       console.log('Maintenance requests table might not exist yet.');
+    }
+
+    // Fetch Expenses
+    try {
+      const { data: expensesData, error } = await supabase
+        .from('expenses')
+        .select('*')
+        .order('expense_date', { ascending: false });
+
+      if (expensesData && !error) {
+        setExpenses(expensesData);
+      }
+    } catch (e) {
+      console.log('Expenses table might not exist yet.');
     }
   };
 
@@ -290,6 +314,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (error) console.error("Error updating maintenance status:", error);
   };
 
+  const addExpense = async (expense: Omit<Expense, 'id' | 'created_at'>) => {
+    if (!isConfigured) return;
+    const { data, error } = await supabase.from('expenses').insert([expense]).select().single();
+    if (data) setExpenses(prev => [data, ...prev]);
+    if (error) console.error("Error adding expense:", error);
+  };
+
+  const deleteExpense = async (id: string) => {
+    if (!isConfigured) return;
+    setExpenses(prev => prev.filter(e => e.id !== id));
+    await supabase.from('expenses').delete().eq('id', id);
+  };
+
   return (
     <DataContext.Provider value={{ 
       rooms, bookings, roomTypes, maintenanceRequests,
@@ -298,7 +335,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       addRoomType, deleteRoomType, sendLineNotification,
       addMaintenanceRequest, updateMaintenanceStatus,
       settings, updateSettings,
-      isConfigured 
+      isConfigured, expenses, addExpense, deleteExpense
     }}>
       {children}
     </DataContext.Provider>
