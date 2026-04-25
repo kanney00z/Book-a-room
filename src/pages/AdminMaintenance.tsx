@@ -14,7 +14,7 @@ export default function AdminMaintenance() {
   ];
 
   return (
-    <div className="space-y-6 h-full flex flex-col">
+    <div className="space-y-6 md:h-full flex flex-col">
       <div className="flex bg-white rounded-[1.5rem] border border-slate-100 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] items-center gap-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-orange-400/10 to-transparent rounded-bl-full -z-10"></div>
         <div className="w-16 h-16 bg-gradient-to-br from-orange-50 to-amber-100 text-orange-700 rounded-[1.25rem] flex items-center justify-center shrink-0 shadow-sm border border-orange-200/50">
@@ -26,11 +26,11 @@ export default function AdminMaintenance() {
         </div>
       </div>
 
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 overflow-hidden pb-4">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 md:overflow-hidden pb-4">
         {columns.map(col => {
           const reqs = maintenanceRequests.filter(r => r.status === col.id);
           return (
-            <div key={col.id} className="bg-slate-100/50 rounded-[1.5rem] p-4 flex flex-col h-full border border-slate-200/50">
+            <div key={col.id} className="bg-slate-100/50 rounded-[1.5rem] p-4 flex flex-col h-[400px] md:h-full border border-slate-200/50">
               <div className="flex items-center justify-between mb-4 px-2">
                 <h3 className={cn("font-display font-bold text-lg flex items-center gap-2", col.color)}>
                   <col.icon className="w-5 h-5" />
